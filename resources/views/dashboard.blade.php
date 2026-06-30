@@ -21,6 +21,7 @@
                     </p>
 
                     <div class="flex flex-wrap gap-4">
+                        @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
                         <a href="{{ route('generate-soal') }}"
                            class="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl shadow hover:bg-slate-100 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -37,6 +38,25 @@
                             </svg>
                             Bank Soal
                         </a>
+                        @else
+                        <a href="{{ route('admin.bank-soal.index') }}"
+                           class="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl shadow hover:bg-slate-100 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>
+                            </svg>
+                            Bank Soal Sekolah
+                        </a>
+
+                        <a href="{{ route('admin.teachers.index') }}"
+                           class="inline-flex items-center gap-2 bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-400 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                            </svg>
+                            Manajemen Guru
+                        </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -202,15 +222,15 @@
 
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-5 shadow">
                     <p class="text-sm text-blue-100">
-                        Provider Favorit
+                        Total Soal Dibuat
                     </p>
 
                     <h3 class="text-2xl font-bold mt-2">
-                        {{ $favoriteProvider }}
+                        {{ $totalQuestions }}
                     </h3>
 
                     <p class="text-sm text-blue-100 mt-2">
-                        Provider AI yang paling sering digunakan.
+                        Jumlah seluruh soal yang berhasil digenerate.
                     </p>
                 </div>
 
@@ -293,21 +313,6 @@
                     </div>
                 </div>
 
-                {{-- Provider AI --}}
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 h-[420px]">
-                    <div class="mb-4">
-                        <h2 class="text-lg font-bold text-slate-900">
-                            Penggunaan Provider AI
-                        </h2>
-                        <p class="text-sm text-slate-500">
-                            Statistik penggunaan Gemini dan Groq.
-                        </p>
-                    </div>
-
-                    <div class="h-80">
-                        <canvas id="providerChart"></canvas>
-                    </div>
-                </div>
 
                 {{-- Tingkat Kesulitan --}}
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 h-[420px]">
@@ -538,43 +543,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// Chart Provider AI //
-const providerLabels = @json($providerLabels);
-const providerTotals = @json($providerStats->pluck('total'));
-
-const providerCtx = document.getElementById('providerChart');
-
-if (providerCtx) {
-    new Chart(providerCtx, {
-        type: 'doughnut',
-        data: {
-            labels: providerLabels,
-            datasets: [{
-                data: providerTotals,
-                backgroundColor: [
-                    '#4285F4',
-                    '#F55036',
-                    '#14B8A6'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const value = context.raw;
-                            const percent = ((value / total) * 100).toFixed(1);
-
-                            return `${context.label}: ${value} (${percent}%)`;
-                        }
                     }
                 }
             }

@@ -116,7 +116,6 @@ class DashboardController extends Controller
             'totalQuestionSets', 'totalQuestions', 'totalMultipleChoice',
             'totalEssay', 'easyCount', 'mediumCount', 'hardCount',
             'latestQuestionSets', 'aiGeneratedCount', 'subjectStats',
-            'providerStats', 'providerLabels', 'favoriteProvider',
             'monthlyActivity', 'period', 'topSubjects'
         ));
     }

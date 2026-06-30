@@ -48,7 +48,7 @@
                     ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => 'Generate soal dari materi PDF/DOCX'],
                     ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => 'Standar Taksonomi Bloom Kurikulum Merdeka'],
                     ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => 'Export ke PDF & Word langsung'],
-                    ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => '2 provider AI: Gemini & Groq'],
+                    ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'text' => 'Soal bergambar dengan rekomendasi visual AI'],
                 ] as $feat)
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-blue-200 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

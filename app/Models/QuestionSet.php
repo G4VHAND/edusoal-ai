@@ -17,6 +17,8 @@ class QuestionSet extends Model
         'topic',
         'question_type',
         'difficulty',
+        'curriculum',
+        'assessment_type',
         'total_questions',
         'ai_result',
         'is_ai_generated',

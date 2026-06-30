@@ -12,7 +12,7 @@ abstract class AbstractAIService implements AIService
             'level'      => 'C1–C2 (Mengingat & Memahami)',
             'deskripsi'  => 'Siswa cukup mengingat fakta atau memahami konsep dasar.',
             'kata_kerja' => 'sebutkan, identifikasi, jelaskan, definisikan, klasifikasikan',
-            'hindari'    => 'Hindari soal yang membutuhkan analisis, penghitungan multi-langkah, atau penalaran kompleks.',
+            'hindari'    => 'Hindari soal yang membutuhkan analisis, penghitungan multi-langkah, penalaran kompleks, atau aplikasi konsep ke situasi baru. Soal hanya boleh meminta siswa mengingat fakta atau menjelaskan definisi/konsep dasar — JANGAN meminta siswa memberi contoh penerapan dalam kehidupan nyata, karena itu termasuk level C3.',
         ],
         'sedang' => [
             'level'      => 'C3–C4 (Mengaplikasikan & Menganalisis)',
@@ -44,6 +44,51 @@ abstract class AbstractAIService implements AIService
         'Kelas 10 SMK'=> ['usia' => '15-16 tahun', 'jenjang' => 'SMK'],
         'Kelas 11 SMK'=> ['usia' => '16-17 tahun', 'jenjang' => 'SMK'],
         'Kelas 12 SMK'=> ['usia' => '17-18 tahun', 'jenjang' => 'SMK'],
+    ];
+
+    /**
+     * Mapping kurikulum ke instruksi spesifik untuk AI.
+     */
+    private const CURRICULUM_MAP = [
+        'merdeka' => [
+            'nama'       => 'Kurikulum Merdeka',
+            'instruksi'  => 'Soal harus mengacu pada Capaian Pembelajaran (CP) dan berorientasi pada profil pelajar Pancasila. '
+                . 'Fokus pada pemahaman bermakna (deep understanding) dan kontekstual, bukan hafalan semata. '
+                . 'Gunakan pendekatan diferensiasi yang relevan dengan fase perkembangan siswa.',
+        ],
+        'k13' => [
+            'nama'       => 'Kurikulum 2013 (K13)',
+            'instruksi'  => 'Soal harus mengacu pada Kompetensi Dasar (KD) dan Indikator Pencapaian Kompetensi (IPK). '
+                . 'Sertakan keseimbangan antara aspek pengetahuan (KI-3) dan keterampilan (KI-4). '
+                . 'Gunakan kata kerja operasional sesuai Permendikbud yang berlaku untuk K13.',
+        ],
+    ];
+
+    /**
+     * Mapping jenis asesmen ke instruksi spesifik untuk AI.
+     */
+    private const ASSESSMENT_MAP = [
+        'reguler' => [
+            'nama'      => 'Reguler',
+            'instruksi' => '',
+        ],
+        'hots' => [
+            'nama'      => 'HOTS (Higher Order Thinking Skills)',
+            'instruksi' => "\n\nKHUSUS HOTS — ATURAN TAMBAHAN:\n"
+                . "- Soal WAJIB berbasis stimulus (wacana, data, grafik, kasus, atau ilustrasi situasi nyata).\n"
+                . "- Hindari soal yang bisa dijawab langsung tanpa membaca/menganalisis stimulus.\n"
+                . "- Soal harus menuntut siswa menganalisis, mengevaluasi, atau memecahkan masalah kontekstual.\n"
+                . "- Sertakan stimulus/wacana singkat di awal question_text sebelum pertanyaan inti.",
+        ],
+        'akm' => [
+            'nama'      => 'AKM (Asesmen Kompetensi Minimum)',
+            'instruksi' => "\n\nKHUSUS AKM — ATURAN TAMBAHAN:\n"
+                . "- Soal mengikuti format AKM Kemendikbud: literasi membaca atau numerasi.\n"
+                . "- Gunakan konteks personal, sosial budaya, atau saintifik yang relevan dengan kehidupan siswa.\n"
+                . "- Untuk numerasi: sertakan data, tabel, atau grafik yang perlu diinterpretasi.\n"
+                . "- Untuk literasi: sertakan teks bacaan singkat (100-200 kata) sebelum soal.\n"
+                . "- Hindari soal hafalan rumus atau fakta murni — fokus pada penalaran dan aplikasi.",
+        ],
     ];
 
     protected function buildPrompt(array $data): string
@@ -91,14 +136,18 @@ ATURAN KETAT — AKURASI:
 4. Isi field "source_paragraph" dengan "Pengetahuan umum [mata pelajaran]" jika tidak ada materi sumber.
 ANTI;
 
-        $total   = $data['total_questions'];
-        $subject = $data['subject'];
-        $grade   = $data['grade'];
-        $topic   = $data['topic'];
-        $diff    = $data['difficulty'];
+        $total      = $data['total_questions'];
+        $subject    = $data['subject'];
+        $grade      = $data['grade'];
+        $topic      = $data['topic'];
+        $diff       = $data['difficulty'];
+        $curriculum = $data['curriculum']      ?? 'merdeka';
+        $assessment = $data['assessment_type'] ?? 'reguler';
 
-        $bloom   = self::BLOOM_MAP[$diff]    ?? self::BLOOM_MAP['sedang'];
-        $jenjang = self::JENJANG_MAP[$grade] ?? null;
+        $bloom      = self::BLOOM_MAP[$diff]            ?? self::BLOOM_MAP['sedang'];
+        $jenjang    = self::JENJANG_MAP[$grade]         ?? null;
+        $currInfo   = self::CURRICULUM_MAP[$curriculum] ?? self::CURRICULUM_MAP['merdeka'];
+        $assessInfo = self::ASSESSMENT_MAP[$assessment] ?? self::ASSESSMENT_MAP['reguler'];
 
         $konteksJenjang = $jenjang
             ? "Siswa berusia {$jenjang['usia']} (jenjang {$jenjang['jenjang']}). "
@@ -107,11 +156,17 @@ ANTI;
 
         $bloomSection = <<<BLOOM
 
-STANDAR KOGNITIF (Taksonomi Bloom — Kurikulum Merdeka):
+STANDAR KOGNITIF (Taksonomi Bloom):
 - Level: {$bloom['level']}
 - Deskripsi: {$bloom['deskripsi']}
 - Gunakan kata kerja operasional: {$bloom['kata_kerja']}
 - {$bloom['hindari']}
+- PENTING: SEMUA soal dalam satu set harus berada pada level kognitif yang SAMA ({$bloom['level']}). Jangan membuat sebagian soal lebih sulit atau lebih mudah dari level yang ditentukan.
+
+KURIKULUM: {$currInfo['nama']}
+- {$currInfo['instruksi']}
+
+JENIS ASESMEN: {$assessInfo['nama']}{$assessInfo['instruksi']}
 
 KONTEKS JENJANG:
 - {$konteksJenjang}

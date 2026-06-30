@@ -113,14 +113,6 @@
                 <td><strong>Dibuat Pada</strong></td>
                 <td>{{ $questionSet->created_at->format('d M Y') }}</td>
             </tr>
-
-            <tr>
-                <td><strong>AI Provider</strong></td>
-                <td>{{ $questionSet->is_ai_generated ? ucfirst($questionSet->ai_provider) : 'Manual' }}</td>
-
-                <td><strong>Model</strong></td>
-                <td>{{ $questionSet->ai_model ?? '-' }}</td>
-            </tr>
         </table>
     </div>
 

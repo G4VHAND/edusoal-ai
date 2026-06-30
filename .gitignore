@@ -1,10 +1,13 @@
 *.log
 .DS_Store
+
 .env
 .env.backup
 .env.production
+
 .phpactor.json
 .phpunit.result.cache
+
 /.codex
 /.cursor/
 /.idea
@@ -12,25 +15,37 @@
 /.phpunit.cache
 /.vscode
 /.zed
+
 /auth.json
+
 /node_modules
+/vendor
+
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+
 /storage/*.key
 /storage/pail
-/vendor
+
+# Storage - uploaded files (private)
+/storage/app/private/
+/storage/app/public/materials/
+
+# Laravel Cache
+/storage/framework/*
+!/storage/framework/.gitignore
+
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+# Database
+/database/*.sqlite
+/database/*.sqlite-shm
+/database/*.sqlite-wal
+
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-
-# Storage - uploaded files (private, should never be in git)
-/storage/app/private/
-/storage/app/public/materials/
-
-# Database files
-/database/*.sqlite
-/database/*.sqlite-shm
-/database/*.sqlite-wal

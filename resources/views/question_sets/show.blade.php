@@ -163,7 +163,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
                     <p class="text-slate-500 text-sm mb-2">Jenis Soal</p>
                     <p class="font-bold text-slate-900">
@@ -175,6 +175,20 @@
                     <p class="text-slate-500 text-sm mb-2">Kesulitan</p>
                     <p class="font-bold text-slate-900 capitalize">
                         {{ $questionSet->difficulty }}
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <p class="text-slate-500 text-sm mb-2">Kurikulum</p>
+                    <p class="font-bold text-slate-900">
+                        {{ $questionSet->curriculum === 'k13' ? 'K13' : 'Merdeka' }}
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <p class="text-slate-500 text-sm mb-2">Jenis Asesmen</p>
+                    <p class="font-bold text-slate-900 uppercase">
+                        {{ $questionSet->assessment_type === 'reguler' ? 'Reguler' : $questionSet->assessment_type }}
                     </p>
                 </div>
 
@@ -221,10 +235,8 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="font-semibold text-violet-800">✅ AI Generated</p>
-                            <p class="text-sm text-violet-600 mt-1">Provider: {{ ucfirst($questionSet->ai_provider) }}</p>
-                            <p class="text-sm text-violet-600">Model: {{ $questionSet->ai_model }}</p>
                             @if($questionSet->material_image)
-                                <p class="text-sm text-blue-600 mt-1">📷 Dibuat dari gambar + Gemini Vision</p>
+                                <p class="text-sm text-blue-600 mt-1">📷 Dibuat dari gambar + Vision AI</p>
                             @endif
                         </div>
                     </div>

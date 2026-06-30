@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="min-h-screen bg-slate-50">
-        <div class="max-w-5xl mx-auto px-6 py-8">
+        <div class="max-w-6xl mx-auto px-6 py-8">
 
             <div class="mb-8">
                 <a href="{{ route('dashboard') }}"
@@ -66,9 +66,9 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <form method="POST" action="{{ route('generate-soal.store') }}" enctype="multipart/form-data" onsubmit="showGenerateLoading()">
                         @csrf
 
@@ -216,7 +216,7 @@
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mt-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
 
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-2">
@@ -270,6 +270,55 @@
 
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-2">
+                                    Kurikulum
+                                </label>
+
+                                <select
+                                    name="curriculum"
+                                    class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="merdeka" {{ old('curriculum', 'merdeka') == 'merdeka' ? 'selected' : '' }}>
+                                        Kurikulum Merdeka
+                                    </option>
+                                    <option value="k13" {{ old('curriculum') == 'k13' ? 'selected' : '' }}>
+                                        Kurikulum 2013 (K13)
+                                    </option>
+                                </select>
+
+                                @error('curriculum')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-2">
+                                    Jenis Asesmen
+                                </label>
+
+                                <select
+                                    name="assessment_type"
+                                    class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="reguler" {{ old('assessment_type', 'reguler') == 'reguler' ? 'selected' : '' }}>
+                                        Reguler
+                                    </option>
+                                    <option value="hots" {{ old('assessment_type') == 'hots' ? 'selected' : '' }}>
+                                        HOTS (Higher Order Thinking Skills)
+                                    </option>
+                                    <option value="akm" {{ old('assessment_type') == 'akm' ? 'selected' : '' }}>
+                                        AKM (Asesmen Kompetensi Minimum)
+                                    </option>
+                                </select>
+
+                                <p class="text-xs text-slate-400 mt-1">
+                                    HOTS & AKM menambahkan stimulus/wacana pada soal.
+                                </p>
+
+                                @error('assessment_type')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-2">
                                     Jumlah Soal
                                 </label>
 
@@ -286,57 +335,9 @@
                                 @enderror
                             </div>
 
-                            <div>
-                                <label class="block font-semibold text-slate-700 mb-2">
-                                    Provider AI
-                                </label>
-
-                                <select
-                                    name="ai_provider"
-                                    class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-                                    <option value="gemini" {{ old('ai_provider') == 'gemini' ? 'selected' : '' }}>
-                                        Google Gemini
-                                    </option>
-
-                                    <option value="groq" {{ old('ai_provider') == 'groq' ? 'selected' : '' }}>
-                                        Groq
-                                    </option>
-
-                                </select>
-
-                                @error('ai_provider')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            {{-- Provider dipilih otomatis oleh sistem --}}
+                            <input type="hidden" name="ai_provider" value="gemini">
                         </div>
-
-                        <div class="mt-5 bg-blue-50 border border-blue-200 rounded-2xl p-5">
-                                <h3 class="font-bold text-slate-900 mb-2">
-                                    Informasi Provider AI
-                                </h3>
-
-                                <p class="text-sm text-slate-600 mb-3">
-                                    Pilih layanan AI yang akan digunakan untuk membuat soal. Integrasi provider akan diaktifkan pada tahap berikutnya.
-                                </p>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                                    <div class="bg-white rounded-xl p-3 border border-blue-100">
-                                        <p class="font-semibold text-slate-900">Google Gemini</p>
-                                        <p class="text-slate-500">Cepat dan cocok untuk MVP awal.</p>
-                                    </div>
-
-                                    <div class="bg-white rounded-xl p-3 border border-blue-100">
-                                        <p class="font-semibold text-slate-900">OpenAI GPT</p>
-                                        <p class="text-slate-500">Cocok untuk kualitas soal tinggi.</p>
-                                    </div>
-
-                                    <div class="bg-white rounded-xl p-3 border border-blue-100">
-                                        <p class="font-semibold text-slate-900">Claude</p>
-                                        <p class="text-slate-500">Baik untuk materi panjang.</p>
-                                    </div>
-                                </div>
-                            </div>
 
                         <div class="flex flex-wrap gap-3 mt-8">
                             <button
@@ -491,15 +492,6 @@
                 preview.classList.add('hidden');
             }
         });
-
-        // Warning jika pilih gambar tapi provider bukan Gemini
-        document.getElementById('imageInput').addEventListener('change', function () {
-            const provider = document.querySelector('select[name="ai_provider"]');
-            if (this.files.length > 0 && provider && provider.value !== 'gemini') {
-                alert('⚠️ Perhatian: Fitur upload gambar hanya didukung oleh provider Gemini. Silakan ganti provider ke Gemini, atau hapus gambar yang dipilih.');
-            }
-        });
-
         document.querySelector('select[name="ai_provider"]')?.addEventListener('change', function () {
             const imageInput = document.getElementById('imageInput');
             if (imageInput.files.length > 0 && this.value !== 'gemini') {

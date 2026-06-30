@@ -28,21 +28,53 @@ class GenerateQuestionsJob implements ShouldQueue
     {
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
-        try {
-            $service = AIServiceFactory::make($this->data['ai_provider']);
+        // Skip image upload jika fallback ke Groq (Groq tidak support Vision)
+        $hasImage = !empty($this->data['material_image']);
 
-            $aiResponse = $service->generateQuestions([
-                'subject'           => $this->data['subject'],
-                'grade'             => $this->data['grade'],
-                'topic'             => $this->data['topic'],
-                'question_type'     => $this->data['question_type'],
-                'difficulty'        => $this->data['difficulty'],
-                'total_questions'   => $this->data['total_questions'],
-                'material_text'     => $this->data['material_text']  ?? null,
-                'material_image'    => $this->data['material_image'] ?? null,
-                'image_description' => null,
+        $payload = [
+            'subject'           => $this->data['subject'],
+            'grade'             => $this->data['grade'],
+            'topic'             => $this->data['topic'],
+            'question_type'     => $this->data['question_type'],
+            'difficulty'        => $this->data['difficulty'],
+            'curriculum'        => $this->data['curriculum']      ?? 'merdeka',
+            'assessment_type'   => $this->data['assessment_type'] ?? 'reguler',
+            'total_questions'   => $this->data['total_questions'],
+            'material_text'     => $this->data['material_text']  ?? null,
+            'material_image'    => $this->data['material_image'] ?? null,
+            'image_description' => null,
+        ];
+
+        // ── Auto-fallback: coba Gemini dulu, jika gagal coba Groq ──────────────
+        $providers   = $hasImage ? ['gemini'] : ['gemini', 'groq'];
+        $aiResponse  = null;
+        $lastError   = null;
+        $usedFallback = false;
+
+        foreach ($providers as $index => $providerName) {
+            try {
+                $service    = AIServiceFactory::make($providerName);
+                $aiResponse = $service->generateQuestions($payload);
+                $usedFallback = $index > 0;
+                break; // berhasil, hentikan loop
+            } catch (\Exception $e) {
+                $lastError = $e;
+                continue; // coba provider berikutnya
+            }
+        }
+
+        if ($aiResponse === null) {
+            // Semua provider gagal
+            $questionSet->update([
+                'status'          => 'failed',
+                'is_ai_generated' => false,
+                'ai_error'        => $lastError?->getMessage() ?? 'Semua provider AI gagal merespons.',
             ]);
 
+            throw $lastError ?? new \Exception('Semua provider AI gagal merespons.');
+        }
+
+        try {
             $decoded = $this->parseAiJson($aiResponse['raw_result']);
 
             foreach ($decoded['questions'] as $item) {
@@ -68,13 +100,11 @@ class GenerateQuestionsJob implements ShouldQueue
                 'ai_model'        => $aiResponse['model'] ?? null,
                 'ai_prompt'       => $aiResponse['prompt'],
                 'ai_result'       => $aiResponse['raw_result'],
-                'ai_error'        => null,
+                'ai_error'        => $usedFallback ? 'Fallback ke provider cadangan digunakan.' : null,
             ]);
 
-            // Increment quota usage user setelah berhasil generate
             $questionSet->user?->incrementQuota();
 
-            // Invalidate dashboard cache agar stats langsung terupdate
             Cache::forget("dashboard:{$questionSet->user_id}:all");
             Cache::forget("dashboard:{$questionSet->user_id}:7days");
             Cache::forget("dashboard:{$questionSet->user_id}:30days");
