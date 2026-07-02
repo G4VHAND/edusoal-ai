@@ -49,6 +49,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(QuestionSet::class);
     }
 
+    public function documentTemplates()
+    {
+        return $this->hasMany(DocumentTemplate::class);
+    }
+
     // ── Role helpers ──────────────────────────────────────────────────────────
 
     public function isSuperAdmin(): bool   { return $this->role === 'super_admin'; }

@@ -103,6 +103,14 @@ class DashboardController extends Controller
             ->map(fn ($rows) => (object)['month' => $rows->first()['month'], 'total' => $rows->sum('total')])
             ->sortBy('month')->values();
 
+        // Pre-compute label bulan & total sebagai array biasa (hindari closure di Blade)
+        $monthNames = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+            7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+        ];
+        $monthlyLabels = $monthlyActivity->map(fn ($row) => $monthNames[$row->month] ?? '-')->values()->all();
+        $monthlyTotals = $monthlyActivity->pluck('total')->values()->all();
+
         $totalQuestionSets   = (int) ($stats['total_question_sets']   ?? 0);
         $totalQuestions      = (int) ($stats['total_questions']        ?? 0);
         $totalMultipleChoice = (int) ($stats['total_multiple_choice']  ?? 0);
@@ -116,7 +124,7 @@ class DashboardController extends Controller
             'totalQuestionSets', 'totalQuestions', 'totalMultipleChoice',
             'totalEssay', 'easyCount', 'mediumCount', 'hardCount',
             'latestQuestionSets', 'aiGeneratedCount', 'subjectStats',
-            'monthlyActivity', 'period', 'topSubjects'
+            'monthlyActivity', 'monthlyLabels', 'monthlyTotals', 'period', 'topSubjects'
         ));
     }
 }

@@ -155,6 +155,34 @@
                                         </div>
                                     </a>
 
+                                    <div class="border-t border-slate-100 my-1"></div>
+
+                                    <a href="{{ route('bank-soal.export-template', ['questionSet' => $questionSet->id, 'type' => 'guru']) }}"
+                                    class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100">
+                                        <svg class="w-5 h-5 text-violet-600"
+                                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                            <path d="M8 7h8M8 11h8M8 15h5"/>
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium">Template Sekolah (Guru)</p>
+                                            <p class="text-xs text-slate-500">Pakai kop surat & format sendiri</p>
+                                        </div>
+                                    </a>
+
+                                    <a href="{{ route('bank-soal.export-template', ['questionSet' => $questionSet->id, 'type' => 'siswa']) }}"
+                                    class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100">
+                                        <svg class="w-5 h-5 text-violet-600"
+                                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                            <path d="M8 7h8M8 11h8M8 15h5"/>
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium">Template Sekolah (Siswa)</p>
+                                            <p class="text-xs text-slate-500">Pakai kop surat & format sendiri</p>
+                                        </div>
+                                    </a>
+
                                 </div>
                             </div>
 

@@ -56,6 +56,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/bank-soal/{questionSet}/export-student-word', [BankSoalController::class, 'exportStudentWord'])
         ->name('bank-soal.export-student-word');
+
+    Route::get('/bank-soal/{questionSet}/export-template', [BankSoalController::class, 'exportWithTemplate'])
+        ->name('bank-soal.export-template');
+
+    // Template Dokumen — guru/individual personal, school admin untuk sekolah
+    Route::get('/templates', [\App\Http\Controllers\DocumentTemplateController::class, 'index'])
+        ->name('templates.index');
+
+    Route::get('/templates/create', [\App\Http\Controllers\DocumentTemplateController::class, 'create'])
+        ->name('templates.create');
+
+    Route::post('/templates', [\App\Http\Controllers\DocumentTemplateController::class, 'store'])
+        ->name('templates.store');
+
+    Route::delete('/templates/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'destroy'])
+        ->name('templates.destroy');
+
+    Route::patch('/templates/{template}/set-default', [\App\Http\Controllers\DocumentTemplateController::class, 'setDefault'])
+        ->name('templates.set-default');
 });
 
 // ─── Generate Soal (hanya teacher & individual) ───────────────────────────────
@@ -141,6 +160,15 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
 
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
+
+        // Kop Surat Sekolah — hanya school_admin
+        Route::middleware('role:school_admin')->group(function () {
+            Route::get('/letterhead', [\App\Http\Controllers\Admin\SchoolLetterheadController::class, 'edit'])
+                ->name('letterhead.edit');
+
+            Route::post('/letterhead', [\App\Http\Controllers\Admin\SchoolLetterheadController::class, 'update'])
+                ->name('letterhead.update');
+        });
     });
 
 // ─── Profile ──────────────────────────────────────────────────────────────────

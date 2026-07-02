@@ -14,11 +14,14 @@ class School extends Model
         'name', 'slug', 'email', 'phone',
         'address', 'city', 'province', 'level',
         'logo', 'is_active', 'trial_ends_at',
+        'headmaster_name', 'headmaster_nip',
+        'letterhead_address', 'show_letterhead_on_export',
     ];
 
     protected $casts = [
-        'is_active'     => 'boolean',
-        'trial_ends_at' => 'datetime',
+        'is_active'                 => 'boolean',
+        'trial_ends_at'             => 'datetime',
+        'show_letterhead_on_export' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -33,6 +36,11 @@ class School extends Model
     public function users()
     {
         return $this->hasMany(User::class);
+    }
+
+    public function documentTemplates()
+    {
+        return $this->hasMany(DocumentTemplate::class);
     }
 
     public function teachers()

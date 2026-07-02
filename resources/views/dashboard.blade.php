@@ -114,7 +114,7 @@
                         $used      = auth()->user()->quota_used_this_month;
                         $isUnlimited = ($limit === -1);
                         $pct       = (!$isUnlimited && $limit > 0) ? min(100, round(($used / $limit) * 100)) : 0;
-                        $displayRemaining = $isUnlimited ? '∞' : $remaining;
+                        $displayRemaining = $isUnlimited ? 'Unlimited' : $remaining;
                     @endphp
                     <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -456,8 +456,8 @@
 
                                 <p class="text-slate-500">
                                     {{ $item['subject'] }}
-                                    • {{ $item['grade'] }}
-                                    • {{ ucfirst($item['difficulty']) }}
+                                    &bull; {{ $item['grade'] }}
+                                    &bull; {{ ucfirst($item['difficulty']) }}
                                 </p>
                             </div>
 
@@ -494,189 +494,108 @@
         </div>
     </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
+    // Chart Distribusi Mata Pelajaran
     const subjectLabels = @json($subjectStats->pluck('subject'));
     const subjectTotals = @json($subjectStats->pluck('total'));
+    const subjectCtx = document.getElementById('subjectChart');
 
-    const ctx = document.getElementById('subjectChart');
-
-    if (ctx) {
-        new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: subjectLabels,
-            datasets: [{
-                label: 'Jumlah Bank Soal',
-                data: subjectTotals,
-                backgroundColor: [
-                    '#3B82F6',
-                    '#10B981',
-                    '#F59E0B',
-                    '#8B5CF6',
-                    '#EF4444'
-                ],
-                borderRadius: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    display: false
-                }
+    if (subjectCtx) {
+        new Chart(subjectCtx, {
+            type: 'bar',
+            data: {
+                labels: subjectLabels,
+                datasets: [{
+                    label: 'Jumlah Bank Soal',
+                    data: subjectTotals,
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'],
+                    borderRadius: 10
+                }]
             },
-
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
             }
-        }
-    });
+        });
+    }
+
+    // Chart Tingkat Kesulitan
+    const difficultyCtx = document.getElementById('difficultyChart');
+
+    if (difficultyCtx) {
+        new Chart(difficultyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Mudah', 'Sedang', 'Sulit'],
+                datasets: [{
+                    data: [{{ $easyCount }}, {{ $mediumCount }}, {{ $hardCount }}],
+                    backgroundColor: ['#22C55E', '#EAB308', '#EF4444']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // Chart Jenis Soal
+    const questionTypeCtx = document.getElementById('questionTypeChart');
+
+    if (questionTypeCtx) {
+        new Chart(questionTypeCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Pilihan Ganda', 'Essay'],
+                datasets: [{
+                    data: [{{ $totalMultipleChoice }}, {{ $totalEssay }}],
+                    backgroundColor: ['#3B82F6', '#8B5CF6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                radius: '85%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // Chart Aktivitas Bulanan
+    const monthlyActivityChart = document.getElementById('monthlyActivityChart');
+    const monthlyLabels = @json($monthlyLabels);
+    const monthlyTotals = @json($monthlyTotals);
+
+    if (monthlyActivityChart) {
+        new Chart(monthlyActivityChart, {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Generate Soal',
+                    data: monthlyTotals,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37,99,235,0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
     }
 
 });
-
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Chart Tingkat Kesulitan //
-const difficultyCtx = document.getElementById('difficultyChart');
-
-if (difficultyCtx) {
-    new Chart(difficultyCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Mudah', 'Sedang', 'Sulit'],
-            datasets: [{
-                data: [
-                    {{ $easyCount }},
-                    {{ $mediumCount }},
-                    {{ $hardCount }}
-                ],
-                backgroundColor: [
-                    '#22C55E',
-                    '#EAB308',
-                    '#EF4444'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-}
-
-// Chart Jenis Soal //
-const questionTypeCtx = document.getElementById('questionTypeChart');
-
-if (questionTypeCtx) {
-    new Chart(questionTypeCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Pilihan Ganda', 'Essay'],
-            datasets: [{
-                data: [
-                    {{ $totalMultipleChoice }},
-                    {{ $totalEssay }}
-                ],
-                backgroundColor: [
-                    '#3B82F6',
-                    '#8B5CF6'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            cutout: '60%',
-            radius: '85%',
-
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-}
-
-// Chart Aktivitas Bulanan //
-const monthlyActivityChart =
-document.getElementById('monthlyActivityChart');
-
-if(monthlyActivityChart){
-
-    new Chart(monthlyActivityChart, {
-
-        type: 'line',
-
-        data: {
-
-            labels: @json(
-                $monthlyActivity->pluck('month')->map(function($month){
-                    return \Carbon\Carbon::create()
-                        ->month($month)
-                        ->translatedFormat('M');
-                })
-            ),
-
-            datasets: [{
-
-                label: 'Generate Soal',
-
-                data: @json(
-                    $monthlyActivity->pluck('total')
-                ),
-
-                borderColor: '#2563eb',
-
-                backgroundColor: 'rgba(37,99,235,0.1)',
-
-                fill: true,
-
-                tension: 0.4
-            }]
-        },
-
-        options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-
-            scales: {
-
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
 </script>
 </x-app-layout>

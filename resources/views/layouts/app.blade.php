@@ -67,6 +67,16 @@
                     </svg>
                     Bank Soal
                 </a>
+
+                <a href="{{ route('templates.index') }}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
+                   {{ request()->routeIs('templates*') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Template Dokumen
+                </a>
                 @endif
 
                 <a href="{{ route('profile.edit') }}"
@@ -139,6 +149,28 @@
                         </svg>
                         Bank Soal Sekolah
                     </a>
+
+                    @if(auth()->user()->isSchoolAdmin())
+                    <a href="{{ route('admin.letterhead.edit') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
+                       {{ request()->routeIs('admin.letterhead*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M8 7h8M8 11h8M8 15h5"/>
+                        </svg>
+                        Kop Surat
+                    </a>
+
+                    <a href="{{ route('templates.index') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
+                       {{ request()->routeIs('templates*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Template Dokumen
+                    </a>
+                    @endif
                 </div>
                 @endif
 
