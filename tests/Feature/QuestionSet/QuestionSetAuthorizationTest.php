@@ -159,6 +159,8 @@ class QuestionSetAuthorizationTest extends TestCase
             'topic'           => 'Aljabar',
             'question_type'   => 'multiple_choice',
             'difficulty'      => 'sulit',
+            'curriculum'      => 'merdeka',
+            'assessment_type' => 'reguler',
             'total_questions' => 10,
         ]);
 

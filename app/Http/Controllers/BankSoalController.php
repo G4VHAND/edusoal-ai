@@ -168,6 +168,21 @@ class BankSoalController extends Controller
 
         if ($templateId) {
             $template = DocumentTemplate::find($templateId);
+
+            if ($template) {
+                // Validasi kepemilikan: sama seperti pola di destroy()/setDefault()
+                // (DocumentTemplateController) — admin sekolah hanya boleh pakai
+                // template sekolahnya sendiri, guru hanya boleh pakai template
+                // miliknya sendiri (atau template default sekolah gurunya).
+                $owns = $currentUser->isSchoolAdmin()
+                    ? $template->school_id === $currentUser->school_id
+                    : (
+                        $template->user_id === $currentUser->id
+                        || ($schoolId && $template->school_id === $schoolId)
+                    );
+
+                abort_unless($owns, 403, 'Anda tidak memiliki akses ke template ini.');
+            }
         } else {
             // Cari dari sekolah guru yang buat soal
             if ($schoolId) {

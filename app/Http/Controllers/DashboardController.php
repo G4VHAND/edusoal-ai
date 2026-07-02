@@ -80,24 +80,6 @@ class DashboardController extends Controller
 
         $topSubjects = $subjectStats->take(5);
 
-        $providerStats = $groupedStats
-            ->filter(fn ($r) => ! empty($r['ai_provider']))
-            ->groupBy('ai_provider')
-            ->map(fn ($rows) => (object)['ai_provider' => $rows->first()['ai_provider'], 'total' => $rows->sum('total')])
-            ->sortByDesc('total')->values();
-
-        $providerLabels = $providerStats->pluck('ai_provider')->map(fn ($p) => match ($p) {
-            'gemini'   => 'Google Gemini',
-            'groq'     => 'Groq',
-            default    => ucfirst($p),
-        });
-
-        $favoriteProvider = match ($providerStats->first()?->ai_provider) {
-            'gemini'   => 'Google Gemini',
-            'groq'     => 'Groq',
-            default    => '-',
-        };
-
         $monthlyActivity = $groupedStats
             ->groupBy('month')
             ->map(fn ($rows) => (object)['month' => $rows->first()['month'], 'total' => $rows->sum('total')])

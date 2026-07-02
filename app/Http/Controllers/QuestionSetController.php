@@ -121,12 +121,15 @@ class QuestionSetController extends Controller
             'topic'           => 'required|string|max:255',
             'question_type'   => 'required|string|in:multiple_choice,essay',
             'difficulty'      => 'required|string|in:mudah,sedang,sulit',
+            'curriculum'      => 'required|string|in:merdeka,k13',
+            'assessment_type' => 'required|string|in:reguler,hots,akm',
             'total_questions' => 'required|integer|min:1|max:50',
         ]);
 
         $questionSet->update($request->only([
             'title', 'subject', 'grade', 'topic',
-            'question_type', 'difficulty', 'total_questions',
+            'question_type', 'difficulty', 'curriculum',
+            'assessment_type', 'total_questions',
         ]));
 
         return redirect()

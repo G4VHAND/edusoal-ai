@@ -184,6 +184,59 @@
 
                     </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-2">
+                                Kurikulum
+                            </label>
+
+                            <select
+                                name="curriculum"
+                                class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="merdeka" {{ old('curriculum', $questionSet->curriculum) == 'merdeka' ? 'selected' : '' }}>
+                                    Kurikulum Merdeka
+                                </option>
+                                <option value="k13" {{ old('curriculum', $questionSet->curriculum) == 'k13' ? 'selected' : '' }}>
+                                    Kurikulum 2013 (K13)
+                                </option>
+                            </select>
+
+                            @error('curriculum')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-2">
+                                Jenis Asesmen
+                            </label>
+
+                            <select
+                                name="assessment_type"
+                                class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="reguler" {{ old('assessment_type', $questionSet->assessment_type) == 'reguler' ? 'selected' : '' }}>
+                                    Reguler
+                                </option>
+                                <option value="hots" {{ old('assessment_type', $questionSet->assessment_type) == 'hots' ? 'selected' : '' }}>
+                                    HOTS (Higher Order Thinking Skills)
+                                </option>
+                                <option value="akm" {{ old('assessment_type', $questionSet->assessment_type) == 'akm' ? 'selected' : '' }}>
+                                    AKM (Asesmen Kompetensi Minimum)
+                                </option>
+                            </select>
+
+                            <p class="text-xs text-slate-400 mt-1">
+                                HOTS & AKM menambahkan stimulus/wacana pada soal.
+                            </p>
+
+                            @error('assessment_type')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                    </div>
+
                     <div class="flex flex-wrap gap-3 mt-8">
                         <button
                             type="submit"

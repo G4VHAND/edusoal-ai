@@ -34,6 +34,8 @@ class GenerateSoalTest extends TestCase
             'topic'           => 'Persamaan Linear',
             'question_type'   => 'multiple_choice',
             'difficulty'      => 'sedang',
+            'curriculum'      => 'merdeka',
+            'assessment_type' => 'reguler',
             'total_questions' => 5,
             'ai_provider'     => 'gemini',
         ], $overrides);
