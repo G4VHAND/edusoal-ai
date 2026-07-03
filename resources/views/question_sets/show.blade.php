@@ -331,9 +331,33 @@
                     </div>
                 </div>
 
+                @if($errors->has('question'))
+                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-4 text-sm">
+                        {{ $errors->first('question') }}
+                    </div>
+                @endif
+
                 @forelse($questionSet->questions as $index => $question)
                     <div class="border border-slate-200 rounded-xl p-5 mb-4
                         {{ $question->needsImageUpload() ? 'border-amber-300 bg-amber-50/30' : '' }}">
+
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <p class="font-bold text-slate-900">
+                                {{ $index + 1 }}. {{ $question->question_text }}
+                            </p>
+
+                            <form method="POST"
+                                  action="{{ route('bank-soal.question.destroy', [$questionSet->id, $question->id]) }}"
+                                  class="shrink-0">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                        onclick="return confirm('Hapus soal nomor {{ $index + 1 }} ini? Tidak bisa dikembalikan.')"
+                                        title="Hapus soal ini"
+                                        class="text-slate-300 hover:text-red-500 transition text-lg leading-none px-1">
+                                    &times;
+                                </button>
+                            </form>
+                        </div>
 
                         {{-- Gambar jika sudah diupload --}}
                         @if($question->hasImage())
@@ -356,10 +380,6 @@
                                 </div>
                             </div>
                         @endif
-
-                        <p class="font-bold text-slate-900 mb-3">
-                            {{ $index + 1 }}. {{ $question->question_text }}
-                        </p>
 
                         @if($questionSet->question_type === 'multiple_choice')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
@@ -510,10 +530,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'completed' || data.has_questions) {
-                clearInterval(interval);
-                window.location.reload();
-            } else if (data.status === 'failed') {
+            if (data.status === 'completed' || data.status === 'failed') {
                 clearInterval(interval);
                 window.location.reload();
             }

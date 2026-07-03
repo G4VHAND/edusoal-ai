@@ -34,7 +34,64 @@
             <p class="mt-2">Untuk daftar soal otomatis, buat tabel 1 baris berisi: <code class="bg-white px-1 rounded">${nomor}</code>, <code class="bg-white px-1 rounded">${soal}</code>, <code class="bg-white px-1 rounded">${jawaban}</code> — sistem akan menduplikasi baris ini sesuai jumlah soal.</p>
         </div>
 
+        @if($schoolTemplates->isNotEmpty())
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6">
+            <div class="px-5 py-3 bg-violet-50 border-b border-violet-100">
+                <p class="font-semibold text-violet-800 text-sm">🏫 Template dari Sekolah</p>
+                <p class="text-xs text-violet-600 mt-0.5">
+                    Diupload oleh admin sekolah Anda. Dipakai otomatis saat Anda export soal
+                    dengan template — Anda tidak perlu upload template sendiri.
+                </p>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                    <tr class="text-left text-slate-600">
+                        <th class="px-5 py-3">Nama Template</th>
+                        <th class="px-5 py-3">Tipe</th>
+                        <th class="px-5 py-3">File</th>
+                        <th class="px-5 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach($schoolTemplates as $template)
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-5 py-3 font-medium text-slate-800">{{ $template->name }}</td>
+                        <td class="px-5 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs
+                                {{ $template->type === 'guru' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700' }}">
+                                {{ ucfirst($template->type) }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3 text-slate-500 text-xs">{{ $template->original_filename }}</td>
+                        <td class="px-5 py-3">
+                            @if($template->is_default)
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    ✓ Dipakai otomatis
+                                </span>
+                            @else
+                                <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded-full text-xs">
+                                    Bukan default
+                                </span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div class="px-5 py-3 bg-slate-50 border-b border-slate-100">
+                <p class="font-semibold text-slate-700 text-sm">
+                    {{ auth()->user()->isSchoolAdmin() ? 'Template Sekolah' : 'Template Personal Saya' }}
+                </p>
+                @if(! auth()->user()->isSchoolAdmin())
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Opsional — kalau sekolah Anda belum punya template default, Anda bisa upload sendiri di sini.
+                    </p>
+                @endif
+            </div>
             <table class="w-full text-sm">
                 <thead class="bg-slate-50">
                     <tr class="text-left text-slate-600">
@@ -84,7 +141,12 @@
                     @empty
                     <tr>
                         <td colspan="5" class="px-5 py-12 text-center text-slate-400">
-                            Belum ada template diupload. Export soal akan menggunakan format standar.
+                            @if(auth()->user()->isSchoolAdmin() || $schoolTemplates->isEmpty())
+                                Belum ada template diupload. Export soal akan menggunakan format standar.
+                            @else
+                                Anda belum upload template personal — tidak masalah, export akan
+                                otomatis memakai template sekolah di atas.
+                            @endif
                         </td>
                     </tr>
                     @endforelse

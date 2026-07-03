@@ -25,7 +25,18 @@ class DocumentTemplateController extends Controller
             ->latest()
             ->get();
 
-        return view('templates.index', compact('templates'));
+        // Guru: tampilkan juga template sekolah (read-only) supaya tidak
+        // mengira export akan pakai format standar padahal sebenarnya
+        // otomatis memakai template default sekolah.
+        $schoolTemplates = collect();
+
+        if (! $user->isSchoolAdmin() && $user->school_id) {
+            $schoolTemplates = DocumentTemplate::where('school_id', $user->school_id)
+                ->latest()
+                ->get();
+        }
+
+        return view('templates.index', compact('templates', 'schoolTemplates'));
     }
 
     public function create()

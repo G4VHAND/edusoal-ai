@@ -37,8 +37,46 @@ class SchoolSubscription extends Model
 
     public function remainingQuota(): int
     {
+        $this->resetQuotaIfNeeded();
+
         $limit = $this->plan->quota_per_month ?? 0;
         if ($limit === -1) return -1; // unlimited
         return max(0, $limit - $this->quota_used);
+    }
+
+    /**
+     * Cek apakah sekolah masih punya quota generate bulan ini (dipakai
+     * bersama oleh semua guru di sekolah tsb).
+     */
+    public function hasQuota(): bool
+    {
+        $this->resetQuotaIfNeeded();
+
+        $limit = $this->plan->quota_per_month ?? 0;
+        if ($limit === -1) return true; // unlimited
+
+        return $this->quota_used < $limit;
+    }
+
+    /**
+     * Tambah 1 quota usage sekolah setelah salah satu gurunya generate soal.
+     */
+    public function incrementQuota(): void
+    {
+        $this->resetQuotaIfNeeded();
+        $this->increment('quota_used');
+    }
+
+    /**
+     * Reset quota_used jika sudah ganti bulan (sama seperti pola di User).
+     */
+    private function resetQuotaIfNeeded(): void
+    {
+        if (! $this->quota_reset_at || $this->quota_reset_at->isPast()) {
+            $this->update([
+                'quota_used'     => 0,
+                'quota_reset_at' => now()->startOfMonth()->addMonth(),
+            ]);
+        }
     }
 }

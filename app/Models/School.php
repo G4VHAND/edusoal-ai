@@ -61,13 +61,53 @@ class School extends Model
     public function activeSubscription()
     {
         return $this->hasOne(SchoolSubscription::class)
-            ->where('status', 'active')
-            ->orWhere('status', 'trial')
+            ->whereIn('status', ['active', 'trial'])
             ->latest();
     }
 
     public function isOnTrial(): bool
     {
         return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+    }
+
+    // ── Quota (pooled per-sekolah, dipakai bersama semua guru) ──────────────
+
+    /**
+     * Ambil subscription aktif langsung dari DB (bukan relasi ter-cache),
+     * supaya selalu up to date terutama saat dipanggil dari Job/queue.
+     */
+    private function freshActiveSubscription(): ?SchoolSubscription
+    {
+        return $this->activeSubscription()->with('plan')->first();
+    }
+
+    public function activePlan(): ?SubscriptionPlan
+    {
+        return $this->freshActiveSubscription()?->plan;
+    }
+
+    public function hasQuota(): bool
+    {
+        return $this->freshActiveSubscription()?->hasQuota() ?? false;
+    }
+
+    public function remainingQuota(): int
+    {
+        return $this->freshActiveSubscription()?->remainingQuota() ?? 0;
+    }
+
+    public function quotaUsed(): int
+    {
+        return $this->freshActiveSubscription()?->quota_used ?? 0;
+    }
+
+    public function quotaLimit(): int
+    {
+        return $this->freshActiveSubscription()?->plan?->quota_per_month ?? 0;
+    }
+
+    public function incrementQuota(): void
+    {
+        $this->freshActiveSubscription()?->incrementQuota();
     }
 }

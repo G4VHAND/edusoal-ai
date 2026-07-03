@@ -22,7 +22,7 @@
                         <th class="px-6 py-4">Email</th>
                         <th class="px-6 py-4">Sekolah</th>
                         <th class="px-6 py-4">Bank Soal</th>
-                        <th class="px-6 py-4">Quota Sisa</th>
+                        <th class="px-6 py-4">Quota Sekolah Sisa</th>
                         <th class="px-6 py-4">Aksi</th>
                     </tr>
                 </thead>

@@ -66,9 +66,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Cek apakah user masih punya quota generate bulan ini.
+     *
+     * Guru/school_admin: quota DIPAKAI BERSAMA satu sekolah (pooled),
+     * sesuai paket sekolahnya — bukan quota per akun masing-masing.
+     * Individual (tanpa sekolah): tetap quota per akun sendiri.
      */
     public function hasQuota(): bool
     {
+        if ($this->hasSchool()) {
+            return $this->school?->hasQuota() ?? false;
+        }
+
         $this->resetQuotaIfNeeded();
 
         $plan = $this->subscriptionPlan;
@@ -83,10 +91,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Sisa quota bulan ini.
+     * Sisa quota bulan ini (pooled sekolah untuk guru/admin sekolah).
      */
     public function remainingQuota(): int
     {
+        if ($this->hasSchool()) {
+            return $this->school?->remainingQuota() ?? 0;
+        }
+
         $this->resetQuotaIfNeeded();
 
         $plan  = $this->subscriptionPlan;
@@ -98,10 +110,44 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Tambah 1 quota usage setelah generate soal.
+     * Jumlah quota yang sudah dipakai bulan ini (pooled sekolah untuk
+     * guru/admin sekolah). Dipakai untuk tampilan, bukan gating.
+     */
+    public function quotaUsed(): int
+    {
+        if ($this->hasSchool()) {
+            return $this->school?->quotaUsed() ?? 0;
+        }
+
+        $this->resetQuotaIfNeeded();
+
+        return $this->quota_used_this_month;
+    }
+
+    /**
+     * Batas quota bulanan yang berlaku untuk user ini (pooled sekolah
+     * untuk guru/admin sekolah).
+     */
+    public function quotaLimit(): int
+    {
+        if ($this->hasSchool()) {
+            return $this->school?->quotaLimit() ?? 0;
+        }
+
+        return $this->subscriptionPlan->quota_per_month ?? 10;
+    }
+
+    /**
+     * Tambah 1 quota usage setelah generate soal (pooled sekolah untuk
+     * guru/admin sekolah).
      */
     public function incrementQuota(): void
     {
+        if ($this->hasSchool()) {
+            $this->school?->incrementQuota();
+            return;
+        }
+
         $this->resetQuotaIfNeeded();
         $this->increment('quota_used_this_month');
     }

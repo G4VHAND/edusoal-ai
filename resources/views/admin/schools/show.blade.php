@@ -33,6 +33,17 @@
                     </p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">
+                    <p class="text-sm text-slate-500">Quota Sekolah Bulan Ini</p>
+                    <p class="font-semibold text-slate-800 mt-1">
+                        @if($school->remainingQuota() === -1)
+                            ∞ Unlimited
+                        @else
+                            {{ $school->quotaUsed() }} / {{ $school->quotaLimit() }} terpakai
+                        @endif
+                    </p>
+                    <p class="text-xs text-slate-400 mt-0.5">Dipakai bersama semua guru</p>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-4">
                     <p class="text-sm text-slate-500">Aktif Hingga</p>
                     <p class="font-semibold mt-1
                         {{ $school->activeSubscription?->ends_at?->isPast() ? 'text-red-600' : 'text-slate-800' }}">
@@ -72,7 +83,7 @@
                     <button type="submit"
                             onclick="return confirm('Reset quota semua guru di sekolah ini?')"
                             class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-amber-600 transition">
-                        ⚡ Reset Quota Guru
+                        ⚡ Reset Quota Sekolah
                     </button>
                 </form>
 
@@ -102,7 +113,7 @@
                         <th class="px-4 py-3">Email</th>
                         <th class="px-4 py-3">Role</th>
                         <th class="px-4 py-3">Bank Soal</th>
-                        <th class="px-4 py-3">Quota Sisa</th>
+                        <th class="px-4 py-3">Bergabung Sejak</th>
                         <th class="px-4 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -117,11 +128,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-3 text-slate-600">{{ $teacher->question_sets_count }}</td>
-                        <td class="px-4 py-3">
-                            <span class="{{ $teacher->remainingQuota() === -1 ? 'text-green-600' : ($teacher->remainingQuota() <= 2 ? 'text-red-600' : 'text-slate-600') }} font-medium">
-                                {{ $teacher->remainingQuota() === -1 ? '∞' : $teacher->remainingQuota() }}
-                            </span>
-                        </td>
+                        <td class="px-4 py-3 text-slate-500 text-xs">{{ $teacher->created_at->format('d M Y') }}</td>
                         <td class="px-4 py-3">
                             <form method="POST" action="{{ route('admin.teachers.destroy', $teacher) }}">
                                 @csrf @method('DELETE')

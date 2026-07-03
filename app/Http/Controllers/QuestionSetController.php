@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\AddQuestionsJob;
 use App\Jobs\GenerateQuestionsJob;
 use App\Models\Question;
 use App\Models\QuestionSet;
@@ -114,6 +115,8 @@ class QuestionSetController extends Controller
     {
         $this->authorize('update', $questionSet);
 
+        $currentCount = $questionSet->questions()->count();
+
         $request->validate([
             'title'           => 'required|string|max:255',
             'subject'         => 'required|string|max:255',
@@ -123,14 +126,50 @@ class QuestionSetController extends Controller
             'difficulty'      => 'required|string|in:mudah,sedang,sulit',
             'curriculum'      => 'required|string|in:merdeka,k13',
             'assessment_type' => 'required|string|in:reguler,hots,akm',
-            'total_questions' => 'required|integer|min:1|max:50',
+            'total_questions' => [
+                'required', 'integer', 'min:1', 'max:50',
+                function ($attribute, $value, $fail) use ($currentCount) {
+                    if ($value < $currentCount) {
+                        $fail("Tidak bisa mengurangi jumlah soal di sini (saat ini ada {$currentCount} soal). Hapus soal secara manual dari halaman detail jika ingin menguranginya.");
+                    }
+                },
+            ],
         ]);
+
+        $newTotal     = (int) $request->input('total_questions');
+        $additional   = $newTotal - $currentCount;
+        $user         = $questionSet->user;
+
+        if ($additional > 0 && ! $user->hasQuota()) {
+            $remaining = $user->remainingQuota();
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'quota' => "Quota generate soal bulan ini sudah habis (sisa: {$remaining}). "
+                        . "Upgrade plan untuk mendapatkan lebih banyak quota, atau turunkan jumlah soal.",
+                ]);
+        }
 
         $questionSet->update($request->only([
             'title', 'subject', 'grade', 'topic',
             'question_type', 'difficulty', 'curriculum',
-            'assessment_type', 'total_questions',
-        ]));
+            'assessment_type',
+        ]) + [
+            // Selama masih menunggu soal tambahan, total_questions sementara
+            // tetap ikut angka lama; job yang akan mengisi angka final agar
+            // tidak mismatch dengan jumlah soal aktual jika generate gagal.
+            'total_questions' => $additional > 0 ? $currentCount : $newTotal,
+            'status'          => $additional > 0 ? 'processing' : $questionSet->status,
+        ]);
+
+        if ($additional > 0) {
+            AddQuestionsJob::dispatch($questionSet->id, $additional);
+
+            return redirect()
+                ->route('bank-soal.show', $questionSet->id)
+                ->with('info', "Menambahkan {$additional} soal baru. Halaman akan otomatis diperbarui saat selesai.");
+        }
 
         return redirect()
             ->route('bank-soal.show', $questionSet->id)
@@ -184,6 +223,38 @@ class QuestionSetController extends Controller
         ]);
 
         return back()->with('success', 'Gambar berhasil diupload.');
+    }
+
+    /**
+     * Hapus satu soal saja dari bank soal (bukan hapus seluruh set).
+     * total_questions otomatis disesuaikan supaya tetap sinkron dengan
+     * jumlah soal aktual yang tersisa.
+     */
+    public function destroyQuestion(QuestionSet $questionSet, Question $question)
+    {
+        $this->authorize('update', $questionSet);
+
+        if ($question->question_set_id !== $questionSet->id) {
+            abort(403);
+        }
+
+        if ($questionSet->questions()->count() <= 1) {
+            return back()->withErrors([
+                'question' => 'Tidak bisa menghapus soal terakhir. Hapus seluruh bank soal jika ingin mengosongkannya.',
+            ]);
+        }
+
+        if ($question->image_path) {
+            Storage::disk('local')->delete($question->image_path);
+        }
+
+        $question->delete();
+
+        $questionSet->update([
+            'total_questions' => $questionSet->questions()->count(),
+        ]);
+
+        return back()->with('success', 'Soal berhasil dihapus.');
     }
 
     public function deleteQuestionImage(QuestionSet $questionSet, Question $question)

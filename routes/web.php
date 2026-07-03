@@ -36,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/bank-soal/{questionSet}/questions/{question}/image', [QuestionSetController::class, 'deleteQuestionImage'])
         ->name('bank-soal.question.image.delete');
 
+    Route::delete('/bank-soal/{questionSet}/questions/{question}', [QuestionSetController::class, 'destroyQuestion'])
+        ->name('bank-soal.question.destroy');
+
     Route::get('/bank-soal/{questionSet}/questions/{question}/image', [QuestionSetController::class, 'serveQuestionImage'])
         ->name('bank-soal.question.image.serve');
 

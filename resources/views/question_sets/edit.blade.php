@@ -172,12 +172,22 @@
                             <input
                                 name="total_questions"
                                 type="number"
-                                min="1"
+                                min="{{ $questionSet->questions()->count() }}"
                                 max="50"
                                 class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 value="{{ old('total_questions', $questionSet->total_questions) }}">
 
+                            <p class="text-xs text-slate-400 mt-1">
+                                Menaikkan angka ini akan membuat AI generate soal tambahan
+                                (memakai 1 quota generate). Menurunkan angka tidak didukung
+                                di sini — hapus soal secara manual di halaman detail.
+                            </p>
+
                             @error('total_questions')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+
+                            @error('quota')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>

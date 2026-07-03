@@ -108,12 +108,12 @@
                 {{-- Quota Card --}}
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                     @php
-                        $remaining = auth()->user()->remainingQuota();
-                        $plan      = auth()->user()->subscriptionPlan;
-                        $limit     = $plan ? $plan->quota_per_month : 10;
-                        $used      = auth()->user()->quota_used_this_month;
+                        $currentUser = auth()->user();
+                        $remaining   = $currentUser->remainingQuota();
+                        $limit       = $currentUser->quotaLimit();
+                        $used        = $currentUser->quotaUsed();
                         $isUnlimited = ($limit === -1);
-                        $pct       = (!$isUnlimited && $limit > 0) ? min(100, round(($used / $limit) * 100)) : 0;
+                        $pct         = (!$isUnlimited && $limit > 0) ? min(100, round(($used / $limit) * 100)) : 0;
                         $displayRemaining = $isUnlimited ? 'Unlimited' : $remaining;
                     @endphp
                     <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
@@ -122,11 +122,16 @@
                             <path d="M12 8v4l3 3"/>
                         </svg>
                     </div>
-                    <p class="text-slate-500 text-sm mb-1">Quota Bulan Ini</p>
+                    <p class="text-slate-500 text-sm mb-1">
+                        {{ $currentUser->hasSchool() ? 'Quota Sekolah Bulan Ini' : 'Quota Bulan Ini' }}
+                    </p>
                     <h2 class="text-4xl font-bold text-slate-900">
                         {{ $displayRemaining }}
                     </h2>
                     <p class="text-xs text-slate-400 mt-1">sisa dari {{ $isUnlimited ? 'unlimited' : $limit }} generate</p>
+                    @if($currentUser->hasSchool())
+                        <p class="text-xs text-slate-400 mt-0.5">Dipakai bersama semua guru di sekolah Anda.</p>
+                    @endif
                     @if(!$isUnlimited)
                     <div class="mt-2 bg-slate-100 rounded-full h-1.5">
                         <div class="h-1.5 rounded-full {{ $pct > 80 ? 'bg-red-400' : 'bg-amber-400' }}"
@@ -134,7 +139,7 @@
                     </div>
                     @endif
                     <p class="text-xs text-slate-400 mt-1">
-                        Paket: {{ $plan?->name ?? 'Free' }}
+                        Paket: {{ ($currentUser->hasSchool() ? $currentUser->school?->activePlan()?->name : $currentUser->subscriptionPlan?->name) ?? 'Free' }}
                     </p>
                 </div>
 
