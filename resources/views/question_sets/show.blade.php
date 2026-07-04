@@ -19,7 +19,7 @@
                             </h1>
 
                             <p class="text-slate-500 mt-2">
-                                {{ $questionSet->subject }} • Kelas {{ $questionSet->grade }} • {{ $questionSet->topic }}
+                                {{ $questionSet->subject }} • {{ $questionSet->grade }} • {{ $questionSet->topic }}
                             </p>
                         </div>
 

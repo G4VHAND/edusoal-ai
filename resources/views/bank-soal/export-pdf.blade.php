@@ -89,7 +89,7 @@
 
         <div class="meta">
             {{ $questionSet->subject }} |
-            Kelas {{ $questionSet->grade }} |
+            {{ $questionSet->grade }} |
             {{ $questionSet->topic }}
         </div>
     </div>

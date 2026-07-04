@@ -300,7 +300,7 @@
         </div>
 
             {{-- Grafik Statistik --}}
-           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
                 {{-- Mata Pelajaran --}}
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 h-[420px]">
@@ -580,23 +580,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (monthlyActivityChart) {
         new Chart(monthlyActivityChart, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: monthlyLabels,
                 datasets: [{
                     label: 'Generate Soal',
                     data: monthlyTotals,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37,99,235,0.1)',
-                    fill: true,
-                    tension: 0.4
+                    backgroundColor: '#2563eb',
+                    borderRadius: 6,
+                    maxBarThickness: 60
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
             }
         });
     }
