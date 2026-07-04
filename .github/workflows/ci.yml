@@ -43,6 +43,15 @@ jobs:
           key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-${{ matrix.php }}-
 
+      - name: Siapkan folder storage & cache
+        # WAJIB sebelum composer install — composer punya post-install
+        # script (package:discover) yang butuh bootstrap/cache sudah ada
+        # dan writable. Tanpa ini, composer install sendiri akan gagal.
+        run: |
+          mkdir -p bootstrap/cache
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
+          chmod -R 775 storage bootstrap/cache
+
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
@@ -68,9 +77,6 @@ jobs:
       - name: Generate app key
         run: php artisan key:generate
 
-      - name: Pastikan storage & cache bisa ditulis
-        run: chmod -R 775 storage bootstrap/cache
-
       - name: Run Unit Tests
         run: php artisan test --testsuite=Unit --stop-on-failure
 
@@ -92,6 +98,12 @@ jobs:
           extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: none
 
+      - name: Siapkan folder storage & cache
+        run: |
+          mkdir -p bootstrap/cache
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
+          chmod -R 775 storage bootstrap/cache
+
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
@@ -112,6 +124,12 @@ jobs:
           php-version: '8.4'
           extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: none
+
+      - name: Siapkan folder storage & cache
+        run: |
+          mkdir -p bootstrap/cache
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
+          chmod -R 775 storage bootstrap/cache
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
