@@ -2,12 +2,12 @@
 
 <p align="center">
 <!-- Ganti OWNER/REPO dengan path repo GitHub kamu yang sebenarnya -->
-<a href="https://github.com/G4VHAND/edusoal-ai/actions/workflows/tests.yml"><img src="https://github.com/G4VHAND/edusoal-ai/actions/workflows/tests.yml/badge.svg" alt="Test Status"></a>
+<a href="https://github.com/G4VHAND/edusoal-ai/actions/workflows/ci.yml"><img src="https://github.com/G4VHAND/edusoal-ai/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
 </p>
 
 ## Menjalankan Test
 
-Project ini punya automated test suite (PHPUnit) yang jalan otomatis di GitHub Actions setiap push/PR ke `main`/`master` — lihat `.github/workflows/tests.yml`.
+Project ini punya automated test suite (PHPUnit), Pint code style check, dan security audit yang jalan otomatis di GitHub Actions setiap push/PR ke `main`/`develop` — lihat `.github/workflows/ci.yml`.
 
 Untuk jalankan test secara lokal:
 

@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # composer.lock sudah pakai Symfony v8.1 yang mewajibkan PHP >= 8.4.1,
+  # jadi PHP 8.3 TIDAK bisa dipakai lagi untuk composer install di CI ini
+  # (lihat run yang gagal 4 Juli 2026). Matrix disesuaikan ke 8.4 & 8.5
+  # (8.5 = versi yang dipakai di environment development).
+  PHP_EXTENSIONS: pdo, pdo_sqlite, mbstring, xml, dom, fileinfo, bcmath, gd, zip
+
 jobs:
   test:
     name: Tests (PHP ${{ matrix.php }})
@@ -13,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        php: ['8.3', '8.4']
+        php: ['8.4', '8.5']
 
     steps:
       - name: Checkout code
@@ -23,17 +30,46 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo, pdo_sqlite, mbstring, xml, bcmath, gd
+          extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: none
 
-      - name: Copy .env
-        run: cp .env.example .env
+      - name: Cache Composer packages
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.php }}-
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        # WAJIB — /public/build di-gitignore jadi tidak ikut ter-commit.
+        # Layout (app.blade.php, guest.blade.php) pakai @vite(...), jadi
+        # tanpa build ini hampir semua Feature test yang render halaman
+        # akan gagal dengan error "Unable to locate file in Vite manifest".
+        run: npm run build
+
+      - name: Copy .env
+        run: cp .env.example .env
+
       - name: Generate app key
         run: php artisan key:generate
+
+      - name: Pastikan storage & cache bisa ditulis
+        run: chmod -R 775 storage bootstrap/cache
 
       - name: Run Unit Tests
         run: php artisan test --testsuite=Unit --stop-on-failure
@@ -52,7 +88,9 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
@@ -71,7 +109,9 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
