@@ -19,13 +19,13 @@ class QuestionGenerationServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new QuestionGenerationService();
+        $this->service = new QuestionGenerationService;
 
         // Hindari retry/sleep asli Http::retry() bikin test lambat.
         config([
-            'ai.providers.gemini.key'   => 'fake-gemini-key',
+            'ai.providers.gemini.key' => 'fake-gemini-key',
             'ai.providers.gemini.retry' => 1,
-            'ai.providers.groq.key'     => 'fake-groq-key',
+            'ai.providers.groq.key' => 'fake-groq-key',
         ]);
     }
 
@@ -33,7 +33,7 @@ class QuestionGenerationServiceTest extends TestCase
 
     public function test_parse_ai_json_handles_markdown_code_fence(): void
     {
-        $raw = "```json\n" . json_encode(['questions' => [['question_text' => 'Apa itu 1+1?']]]) . "\n```";
+        $raw = "```json\n".json_encode(['questions' => [['question_text' => 'Apa itu 1+1?']]])."\n```";
 
         $result = $this->service->parseAiJson($raw);
 
@@ -93,15 +93,15 @@ class QuestionGenerationServiceTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'individual']);
         $questionSet = QuestionSet::create([
-            'user_id'         => $user->id,
-            'title'           => 'Test',
-            'subject'         => 'Matematika',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Aljabar',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sedang',
+            'user_id' => $user->id,
+            'title' => 'Test',
+            'subject' => 'Matematika',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Aljabar',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sedang',
             'total_questions' => 2,
-            'status'          => 'completed',
+            'status' => 'completed',
         ]);
 
         $this->service->createQuestions($questionSet, [
@@ -192,12 +192,12 @@ class QuestionGenerationServiceTest extends TestCase
     private function payload(): array
     {
         return [
-            'subject'         => 'Matematika',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Aljabar',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sedang',
-            'curriculum'      => 'merdeka',
+            'subject' => 'Matematika',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Aljabar',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sedang',
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 5,
         ];

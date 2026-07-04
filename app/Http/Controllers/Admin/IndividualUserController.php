@@ -20,9 +20,9 @@ class IndividualUserController extends Controller
         $users = User::where('role', 'individual')
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             }))
-            ->when($status === 'active',   fn ($q) => $q->where('is_active', true))
+            ->when($status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($status === 'inactive', fn ($q) => $q->where('is_active', false))
             ->withCount('questionSets')
             ->latest()
@@ -30,8 +30,8 @@ class IndividualUserController extends Controller
             ->withQueryString();
 
         $stats = [
-            'total'    => User::where('role', 'individual')->count(),
-            'active'   => User::where('role', 'individual')->where('is_active', true)->count(),
+            'total' => User::where('role', 'individual')->count(),
+            'active' => User::where('role', 'individual')->where('is_active', true)->count(),
             'verified' => User::where('role', 'individual')->whereNotNull('email_verified_at')->count(),
         ];
 
@@ -62,7 +62,7 @@ class IndividualUserController extends Controller
         $user->update([
             'subscription_plan_id' => $plan->id,
             'quota_used_this_month' => 0,
-            'quota_reset_at'        => now()->startOfMonth()->addMonth(),
+            'quota_reset_at' => now()->startOfMonth()->addMonth(),
         ]);
 
         return back()->with('success', "Paket {$user->name} berhasil diubah ke {$plan->name}.");
@@ -74,7 +74,7 @@ class IndividualUserController extends Controller
 
         $user->update([
             'quota_used_this_month' => 0,
-            'quota_reset_at'        => now()->startOfMonth()->addMonth(),
+            'quota_reset_at' => now()->startOfMonth()->addMonth(),
         ]);
 
         return back()->with('success', "Quota {$user->name} berhasil direset.");

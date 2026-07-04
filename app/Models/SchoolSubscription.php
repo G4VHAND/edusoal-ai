@@ -14,9 +14,9 @@ class SchoolSubscription extends Model
     ];
 
     protected $casts = [
-        'starts_at'       => 'datetime',
-        'ends_at'         => 'datetime',
-        'quota_reset_at'  => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'quota_reset_at' => 'datetime',
     ];
 
     public function school()
@@ -40,7 +40,10 @@ class SchoolSubscription extends Model
         $this->resetQuotaIfNeeded();
 
         $limit = $this->plan->quota_per_month ?? 0;
-        if ($limit === -1) return -1; // unlimited
+        if ($limit === -1) {
+            return -1;
+        } // unlimited
+
         return max(0, $limit - $this->quota_used);
     }
 
@@ -53,7 +56,9 @@ class SchoolSubscription extends Model
         $this->resetQuotaIfNeeded();
 
         $limit = $this->plan->quota_per_month ?? 0;
-        if ($limit === -1) return true; // unlimited
+        if ($limit === -1) {
+            return true;
+        } // unlimited
 
         return $this->quota_used < $limit;
     }
@@ -74,7 +79,7 @@ class SchoolSubscription extends Model
     {
         if (! $this->quota_reset_at || $this->quota_reset_at->isPast()) {
             $this->update([
-                'quota_used'     => 0,
+                'quota_used' => 0,
                 'quota_reset_at' => now()->startOfMonth()->addMonth(),
             ]);
         }

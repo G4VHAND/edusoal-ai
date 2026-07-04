@@ -16,7 +16,6 @@ interface AIService
      *   material_image: string|null,
      *   image_description: string|null
      * } $data
-     *
      * @return array{
      *   prompt: string,
      *   raw_result: string,

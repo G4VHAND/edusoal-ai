@@ -19,8 +19,8 @@ class School extends Model
     ];
 
     protected $casts = [
-        'is_active'                 => 'boolean',
-        'trial_ends_at'             => 'datetime',
+        'is_active' => 'boolean',
+        'trial_ends_at' => 'datetime',
         'show_letterhead_on_export' => 'boolean',
     ];
 

@@ -22,7 +22,7 @@ class QuestionGenerationService
      * @return array{response: array, used_fallback: bool}
      *
      * @throws \Exception jika SEMUA provider gagal — exception dari
-     *                     provider TERAKHIR yang dicoba.
+     *                    provider TERAKHIR yang dicoba.
      */
     public function generateWithFallback(array $payload, bool $hasImage = false): array
     {
@@ -32,15 +32,16 @@ class QuestionGenerationService
 
         foreach ($providers as $index => $providerName) {
             try {
-                $service  = AIServiceFactory::make($providerName);
+                $service = AIServiceFactory::make($providerName);
                 $response = $service->generateQuestions($payload);
 
                 return [
-                    'response'      => $response,
+                    'response' => $response,
                     'used_fallback' => $index > 0,
                 ];
             } catch (\Exception $e) {
                 $lastError = $e;
+
                 continue; // coba provider berikutnya
             }
         }
@@ -63,7 +64,7 @@ class QuestionGenerationService
         $decoded = json_decode($clean, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('JSON dari AI tidak valid: ' . json_last_error_msg());
+            throw new \Exception('JSON dari AI tidak valid: '.json_last_error_msg());
         }
 
         if (! isset($decoded['questions']) || ! is_array($decoded['questions'])) {
@@ -94,18 +95,18 @@ class QuestionGenerationService
     {
         foreach ($decodedQuestions as $item) {
             Question::create([
-                'question_set_id'      => $questionSet->id,
-                'question_text'        => $item['question_text'] ?? $item['question'] ?? '',
-                'option_a'             => $item['option_a'] ?? null,
-                'option_b'             => $item['option_b'] ?? null,
-                'option_c'             => $item['option_c'] ?? null,
-                'option_d'             => $item['option_d'] ?? null,
-                'correct_answer'       => $this->cleanText($item['correct_answer'] ?? null),
-                'explanation'          => $this->cleanText($item['explanation'] ?? null),
-                'source_paragraph'     => $this->cleanText($item['source_paragraph'] ?? null),
-                'needs_image'          => (bool) ($item['needs_image'] ?? false),
+                'question_set_id' => $questionSet->id,
+                'question_text' => $item['question_text'] ?? $item['question'] ?? '',
+                'option_a' => $item['option_a'] ?? null,
+                'option_b' => $item['option_b'] ?? null,
+                'option_c' => $item['option_c'] ?? null,
+                'option_d' => $item['option_d'] ?? null,
+                'correct_answer' => $this->cleanText($item['correct_answer'] ?? null),
+                'explanation' => $this->cleanText($item['explanation'] ?? null),
+                'source_paragraph' => $this->cleanText($item['source_paragraph'] ?? null),
+                'needs_image' => (bool) ($item['needs_image'] ?? false),
                 'image_recommendation' => $this->cleanText($item['image_recommendation'] ?? null),
-                'image_description'    => $imageDescription,
+                'image_description' => $imageDescription,
             ]);
         }
     }

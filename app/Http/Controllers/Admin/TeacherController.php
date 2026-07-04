@@ -15,7 +15,7 @@ class TeacherController extends Controller
 {
     public function index()
     {
-        $user    = auth()->user();
+        $user = auth()->user();
         $schoolId = $user->isSuperAdmin() ? null : $user->school_id;
 
         $teachers = User::where('role', 'teacher')
@@ -42,9 +42,9 @@ class TeacherController extends Controller
         $user = auth()->user();
 
         $request->validate([
-            'name'      => 'required|string|max:255',
-            'email'     => 'required|email|unique:users,email',
-            'password'  => 'required|string|min:8',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
             'school_id' => $user->isSuperAdmin() ? 'required|exists:schools,id' : 'nullable',
         ]);
 
@@ -58,7 +58,7 @@ class TeacherController extends Controller
 
         // Cek batas jumlah guru di plan sekolah
         $school = School::findOrFail($schoolId);
-        $plan   = $school->activeSubscription?->plan;
+        $plan = $school->activeSubscription?->plan;
 
         if ($plan && ! $plan->isUnlimitedTeachers()) {
             $currentCount = $school->teachers()->count();
@@ -70,15 +70,15 @@ class TeacherController extends Controller
         }
 
         User::create([
-            'name'                 => $request->name,
-            'email'                => $request->email,
-            'password'             => Hash::make($request->password),
-            'school_id'            => $schoolId,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'school_id' => $schoolId,
             'subscription_plan_id' => $plan?->id,
-            'role'                 => 'teacher',
-            'email_verified_at'    => now(),
-            'is_active'            => true,
-            'quota_reset_at'       => now()->startOfMonth()->addMonth(),
+            'role' => 'teacher',
+            'email_verified_at' => now(),
+            'is_active' => true,
+            'quota_reset_at' => now()->startOfMonth()->addMonth(),
         ]);
 
         return redirect()

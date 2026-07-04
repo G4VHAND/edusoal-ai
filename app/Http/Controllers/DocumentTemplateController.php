@@ -47,10 +47,10 @@ class DocumentTemplateController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'type'       => 'required|in:guru,siswa',
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:guru,siswa',
             'is_default' => 'nullable|boolean',
-            'template'   => [
+            'template' => [
                 'required',
                 'file',
                 'max:5120',
@@ -74,13 +74,13 @@ class DocumentTemplateController extends Controller
         }
 
         DocumentTemplate::create([
-            'school_id'          => $user->isSchoolAdmin() ? $user->school_id : null,
-            'user_id'            => $user->isSchoolAdmin() ? null : $user->id,
-            'name'               => $request->name,
-            'file_path'          => $path,
-            'original_filename'  => $file->getClientOriginalName(),
-            'type'               => $request->type,
-            'is_default'         => $isDefault,
+            'school_id' => $user->isSchoolAdmin() ? $user->school_id : null,
+            'user_id' => $user->isSchoolAdmin() ? null : $user->id,
+            'name' => $request->name,
+            'file_path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'type' => $request->type,
+            'is_default' => $isDefault,
         ]);
 
         return redirect()

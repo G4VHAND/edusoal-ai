@@ -7,18 +7,18 @@ use App\Models\QuestionSet;
 use App\Services\Document\TemplateExportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\SimpleType\Jc;
 
 class BankSoalController extends Controller
 {
     public function index()
     {
-        $search       = request('search');
+        $search = request('search');
         $questionType = request('question_type');
-        $difficulty   = request('difficulty');
+        $difficulty = request('difficulty');
 
         $questionSets = QuestionSet::where('user_id', auth()->id())
             ->when($search, function ($query) use ($search) {
@@ -31,7 +31,7 @@ class BankSoalController extends Controller
                 });
             })
             ->when($questionType, fn ($q) => $q->where('question_type', $questionType))
-            ->when($difficulty,   fn ($q) => $q->where('difficulty', $difficulty))
+            ->when($difficulty, fn ($q) => $q->where('difficulty', $difficulty))
             ->latest()
             ->paginate(20)
             ->withQueryString(); // Pertahankan filter saat ganti halaman
@@ -53,7 +53,7 @@ class BankSoalController extends Controller
         $pdf = Pdf::loadView('bank-soal.export-pdf', compact('questionSet'))
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download($questionSet->title . '.pdf');
+        return $pdf->download($questionSet->title.'.pdf');
     }
 
     public function exportStudentPdf(QuestionSet $questionSet)
@@ -65,7 +65,7 @@ class BankSoalController extends Controller
         $pdf = Pdf::loadView('bank-soal.export-student-pdf', compact('questionSet'))
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download($questionSet->title . ' - Soal Siswa.pdf');
+        return $pdf->download($questionSet->title.' - Soal Siswa.pdf');
     }
 
     public function exportStudentWord(QuestionSet $questionSet)
@@ -74,7 +74,7 @@ class BankSoalController extends Controller
 
         $questionSet->load('questions');
 
-        $phpWord = new PhpWord();
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         $section->addText(
@@ -83,16 +83,16 @@ class BankSoalController extends Controller
         );
 
         $section->addText(
-            $questionSet->subject .
-            ' | Kelas ' . $questionSet->grade .
-            ' | ' . $questionSet->topic
+            $questionSet->subject.
+            ' | Kelas '.$questionSet->grade.
+            ' | '.$questionSet->topic
         );
 
         $section->addTextBreak(1);
 
         foreach ($questionSet->questions as $index => $question) {
             $section->addText(
-                ($index + 1) . '. ' . $question->question_text,
+                ($index + 1).'. '.$question->question_text,
                 ['bold' => true]
             );
 
@@ -103,12 +103,12 @@ class BankSoalController extends Controller
                 if (file_exists($imagePath)) {
                     try {
                         $section->addImage($imagePath, [
-                            'width'            => 400,
-                            'height'           => 250,
-                            'alignment'        => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
-                            'wrappingStyle'    => 'inline',
-                            'marginTop'        => 5,
-                            'marginBottom'     => 5,
+                            'width' => 400,
+                            'height' => 250,
+                            'alignment' => Jc::CENTER,
+                            'wrappingStyle' => 'inline',
+                            'marginTop' => 5,
+                            'marginBottom' => 5,
                         ]);
                     } catch (\Exception $e) {
                         // Jika gambar gagal disisipkan, tambahkan keterangan
@@ -118,22 +118,22 @@ class BankSoalController extends Controller
             } elseif ($question->needs_image) {
                 // Soal butuh gambar tapi belum diupload — beri placeholder
                 $section->addText(
-                    '[GAMBAR: ' . ($question->image_recommendation ?? 'Sisipkan gambar di sini') . ']',
+                    '[GAMBAR: '.($question->image_recommendation ?? 'Sisipkan gambar di sini').']',
                     ['italic' => true, 'color' => 'CC6600']
                 );
             }
 
             if ($questionSet->question_type === 'multiple_choice') {
-                $section->addText('A. ' . $question->option_a);
-                $section->addText('B. ' . $question->option_b);
-                $section->addText('C. ' . $question->option_c);
-                $section->addText('D. ' . $question->option_d);
+                $section->addText('A. '.$question->option_a);
+                $section->addText('B. '.$question->option_b);
+                $section->addText('C. '.$question->option_c);
+                $section->addText('D. '.$question->option_d);
             }
 
             $section->addTextBreak(1);
         }
 
-        $fileName = $questionSet->title . '-Soal.docx';
+        $fileName = $questionSet->title.'-Soal.docx';
         $tempFile = tempnam(sys_get_temp_dir(), 'edusoal_word_');
 
         IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
@@ -156,8 +156,8 @@ class BankSoalController extends Controller
         $type = $request->get('type', 'guru'); // guru | siswa
         $templateId = $request->get('template_id');
 
-        $user       = $questionSet->user;
-        $schoolId   = $user?->school_id;
+        $user = $questionSet->user;
+        $schoolId = $user?->school_id;
         $currentUser = auth()->user();
 
         // Cari template dengan prioritas:
@@ -228,18 +228,18 @@ class BankSoalController extends Controller
                 includeAnswers: $type === 'guru'
             );
         } catch (\Exception $e) {
-            \Log::error('Export template gagal: ' . $e->getMessage(), [
+            \Log::error('Export template gagal: '.$e->getMessage(), [
                 'question_set_id' => $questionSet->id,
-                'template_id'     => $template->id,
-                'trace'           => $e->getTraceAsString(),
+                'template_id' => $template->id,
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return back()->withErrors([
-                'template' => 'Gagal generate dokumen dari template: ' . $e->getMessage(),
+                'template' => 'Gagal generate dokumen dari template: '.$e->getMessage(),
             ]);
         }
 
-        $fileName = $questionSet->title . ' - ' . ucfirst($type) . '.docx';
+        $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
 
         return response()
             ->download($outputPath, $fileName)

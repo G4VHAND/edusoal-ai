@@ -27,13 +27,13 @@ class SchoolLetterheadController extends Controller
         abort_if(! $school, 404);
 
         $request->validate([
-            'name'                       => 'required|string|max:255',
-            'address'                    => 'nullable|string',
-            'letterhead_address'         => 'nullable|string',
-            'headmaster_name'            => 'nullable|string|max:255',
-            'headmaster_nip'             => 'nullable|string|max:50',
-            'show_letterhead_on_export'  => 'nullable|boolean',
-            'logo'                       => 'nullable|image|max:2048',
+            'name' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'letterhead_address' => 'nullable|string',
+            'headmaster_name' => 'nullable|string|max:255',
+            'headmaster_nip' => 'nullable|string|max:50',
+            'show_letterhead_on_export' => 'nullable|boolean',
+            'logo' => 'nullable|image|max:2048',
         ]);
 
         $data = $request->only([

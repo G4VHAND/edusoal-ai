@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\AddQuestionsJob;
-use App\Jobs\GenerateQuestionsJob;
 use App\Http\Requests\QuestionSet\StoreQuestionSetRequest;
 use App\Http\Requests\QuestionSet\UpdateQuestionSetRequest;
+use App\Jobs\AddQuestionsJob;
+use App\Jobs\GenerateQuestionsJob;
 use App\Models\Question;
 use App\Models\QuestionSet;
 use App\Services\Material\MaterialReaderService;
@@ -26,10 +26,10 @@ class QuestionSetController extends Controller
         $materialPath = $materialOriginalName = $materialText = $materialImage = null;
 
         if ($request->hasFile('material_file')) {
-            $file                 = $request->file('material_file');
+            $file = $request->file('material_file');
             $materialOriginalName = $file->getClientOriginalName();
-            $materialPath         = $file->store('materials', 'local');
-            $materialText         = (new MaterialReaderService())->extractText($materialPath);
+            $materialPath = $file->store('materials', 'local');
+            $materialText = (new MaterialReaderService)->extractText($materialPath);
         }
 
         if ($request->hasFile('material_image')) {
@@ -37,40 +37,40 @@ class QuestionSetController extends Controller
         }
 
         $questionSet = QuestionSet::create([
-            'user_id'                => auth()->id(),
-            'title'                  => $validated['title'],
-            'subject'                => $validated['subject'],
-            'grade'                  => $validated['grade'],
-            'topic'                  => $validated['topic'],
-            'question_type'          => $validated['question_type'],
-            'difficulty'             => $validated['difficulty'],
-            'curriculum'             => $validated['curriculum'],
-            'assessment_type'        => $validated['assessment_type'],
-            'total_questions'        => $validated['total_questions'],
-            'ai_provider'            => $validated['ai_provider'],
-            'status'                 => 'pending',
-            'is_ai_generated'        => false,
-            'ai_model'               => null,
-            'ai_prompt'              => null,
-            'ai_result'              => null,
-            'ai_error'               => null,
-            'material_file'          => $materialPath,
+            'user_id' => auth()->id(),
+            'title' => $validated['title'],
+            'subject' => $validated['subject'],
+            'grade' => $validated['grade'],
+            'topic' => $validated['topic'],
+            'question_type' => $validated['question_type'],
+            'difficulty' => $validated['difficulty'],
+            'curriculum' => $validated['curriculum'],
+            'assessment_type' => $validated['assessment_type'],
+            'total_questions' => $validated['total_questions'],
+            'ai_provider' => $validated['ai_provider'],
+            'status' => 'pending',
+            'is_ai_generated' => false,
+            'ai_model' => null,
+            'ai_prompt' => null,
+            'ai_result' => null,
+            'ai_error' => null,
+            'material_file' => $materialPath,
             'material_original_name' => $materialOriginalName,
-            'material_image'         => $materialImage,
+            'material_image' => $materialImage,
         ]);
 
         GenerateQuestionsJob::dispatch($questionSet->id, [
-            'subject'         => $validated['subject'],
-            'grade'           => $validated['grade'],
-            'topic'           => $validated['topic'],
-            'question_type'   => $validated['question_type'],
-            'difficulty'      => $validated['difficulty'],
-            'curriculum'      => $validated['curriculum'],
+            'subject' => $validated['subject'],
+            'grade' => $validated['grade'],
+            'topic' => $validated['topic'],
+            'question_type' => $validated['question_type'],
+            'difficulty' => $validated['difficulty'],
+            'curriculum' => $validated['curriculum'],
             'assessment_type' => $validated['assessment_type'],
             'total_questions' => $validated['total_questions'],
-            'ai_provider'     => $validated['ai_provider'],
-            'material_text'   => $materialText,
-            'material_image'  => $materialImage,
+            'ai_provider' => $validated['ai_provider'],
+            'material_text' => $materialText,
+            'material_image' => $materialImage,
         ]);
 
         return redirect()
@@ -82,22 +82,24 @@ class QuestionSetController extends Controller
     {
         $this->authorize('view', $questionSet);
         $questionSet->load('questions');
+
         return view('question_sets.show', compact('questionSet'));
     }
 
     public function edit(QuestionSet $questionSet)
     {
         $this->authorize('update', $questionSet);
+
         return view('question_sets.edit', compact('questionSet'));
     }
 
     public function update(UpdateQuestionSetRequest $request, QuestionSet $questionSet)
     {
-        $validated    = $request->validated();
+        $validated = $request->validated();
         $currentCount = $request->currentQuestionCount();
-        $newTotal     = (int) $validated['total_questions'];
-        $additional   = $newTotal - $currentCount;
-        $user         = $questionSet->user;
+        $newTotal = (int) $validated['total_questions'];
+        $additional = $newTotal - $currentCount;
+        $user = $questionSet->user;
 
         if ($additional > 0 && ! $user->hasQuota()) {
             $remaining = $user->remainingQuota();
@@ -106,24 +108,24 @@ class QuestionSetController extends Controller
                 ->withInput()
                 ->withErrors([
                     'quota' => "Quota generate soal bulan ini sudah habis (sisa: {$remaining}). "
-                        . "Upgrade plan untuk mendapatkan lebih banyak quota, atau turunkan jumlah soal.",
+                        .'Upgrade plan untuk mendapatkan lebih banyak quota, atau turunkan jumlah soal.',
                 ]);
         }
 
         $questionSet->update([
-            'title'           => $validated['title'],
-            'subject'         => $validated['subject'],
-            'grade'           => $validated['grade'],
-            'topic'           => $validated['topic'],
-            'question_type'   => $validated['question_type'],
-            'difficulty'      => $validated['difficulty'],
-            'curriculum'      => $validated['curriculum'],
+            'title' => $validated['title'],
+            'subject' => $validated['subject'],
+            'grade' => $validated['grade'],
+            'topic' => $validated['topic'],
+            'question_type' => $validated['question_type'],
+            'difficulty' => $validated['difficulty'],
+            'curriculum' => $validated['curriculum'],
             'assessment_type' => $validated['assessment_type'],
             // Selama masih menunggu soal tambahan, total_questions sementara
             // tetap ikut angka lama; job yang akan mengisi angka final agar
             // tidak mismatch dengan jumlah soal aktual jika generate gagal.
             'total_questions' => $additional > 0 ? $currentCount : $newTotal,
-            'status'          => $additional > 0 ? 'processing' : $questionSet->status,
+            'status' => $additional > 0 ? 'processing' : $questionSet->status,
         ]);
 
         if ($additional > 0) {
@@ -159,9 +161,9 @@ class QuestionSetController extends Controller
         $this->authorize('view', $questionSet);
 
         return response()->json([
-            'status'        => $questionSet->status,
+            'status' => $questionSet->status,
             'has_questions' => $questionSet->questions()->count() > 0,
-            'ai_error'      => $questionSet->ai_error,
+            'ai_error' => $questionSet->ai_error,
         ]);
     }
 

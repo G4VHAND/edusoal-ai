@@ -14,28 +14,28 @@ class UserQuotaTest extends TestCase
     private function makeUser(array $attrs = []): User
     {
         return User::factory()->create(array_merge([
-            'role'                   => 'individual',
-            'quota_used_this_month'  => 0,
-            'quota_reset_at'         => now()->addMonth(),
-            'is_active'              => true,
+            'role' => 'individual',
+            'quota_used_this_month' => 0,
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
         ], $attrs));
     }
 
     private function makePlan(array $attrs = []): SubscriptionPlan
     {
         return SubscriptionPlan::create(array_merge([
-            'name'                       => 'Test Plan',
-            'slug'                       => 'test-' . uniqid(),
-            'price_monthly'              => 0,
-            'price_yearly'               => 0,
-            'max_teachers'               => 5,
-            'quota_per_month'            => 10,
+            'name' => 'Test Plan',
+            'slug' => 'test-'.uniqid(),
+            'price_monthly' => 0,
+            'price_yearly' => 0,
+            'max_teachers' => 5,
+            'quota_per_month' => 10,
             'max_questions_per_generate' => 10,
-            'allow_image_upload'         => false,
-            'allow_export_word'          => false,
-            'allow_export_pdf'           => true,
-            'allow_all_providers'        => false,
-            'is_active'                  => true,
+            'allow_image_upload' => false,
+            'allow_export_word' => false,
+            'allow_export_pdf' => true,
+            'allow_all_providers' => false,
+            'is_active' => true,
         ], $attrs));
     }
 
@@ -69,7 +69,7 @@ class UserQuotaTest extends TestCase
     {
         $plan = $this->makePlan(['quota_per_month' => -1]);
         $user = $this->makeUser([
-            'subscription_plan_id'  => $plan->id,
+            'subscription_plan_id' => $plan->id,
             'quota_used_this_month' => 9999,
         ]);
 
@@ -81,7 +81,7 @@ class UserQuotaTest extends TestCase
     {
         $user = $this->makeUser([
             'quota_used_this_month' => 8,
-            'quota_reset_at'        => now()->subDay(), // sudah lewat
+            'quota_reset_at' => now()->subDay(), // sudah lewat
         ]);
 
         // hasQuota() harus trigger reset
@@ -92,10 +92,10 @@ class UserQuotaTest extends TestCase
 
     public function test_role_helpers_return_correct_boolean(): void
     {
-        $superAdmin  = $this->makeUser(['role' => 'super_admin']);
+        $superAdmin = $this->makeUser(['role' => 'super_admin']);
         $schoolAdmin = $this->makeUser(['role' => 'school_admin']);
-        $teacher     = $this->makeUser(['role' => 'teacher']);
-        $individual  = $this->makeUser(['role' => 'individual']);
+        $teacher = $this->makeUser(['role' => 'teacher']);
+        $individual = $this->makeUser(['role' => 'individual']);
 
         $this->assertTrue($superAdmin->isSuperAdmin());
         $this->assertFalse($superAdmin->isTeacher());
@@ -110,19 +110,19 @@ class UserQuotaTest extends TestCase
     public function test_plan_feature_flags(): void
     {
         $freePlan = $this->makePlan([
-            'allow_image_upload'  => false,
-            'allow_export_word'   => false,
+            'allow_image_upload' => false,
+            'allow_export_word' => false,
             'allow_all_providers' => false,
         ]);
 
         $proPlan = $this->makePlan([
-            'allow_image_upload'  => true,
-            'allow_export_word'   => true,
+            'allow_image_upload' => true,
+            'allow_export_word' => true,
             'allow_all_providers' => true,
         ]);
 
         $freeUser = $this->makeUser(['subscription_plan_id' => $freePlan->id]);
-        $proUser  = $this->makeUser(['subscription_plan_id' => $proPlan->id]);
+        $proUser = $this->makeUser(['subscription_plan_id' => $proPlan->id]);
 
         $this->assertFalse($freeUser->canUseImageUpload());
         $this->assertFalse($freeUser->canExportWord());

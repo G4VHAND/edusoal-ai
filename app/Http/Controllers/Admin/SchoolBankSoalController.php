@@ -23,20 +23,20 @@ class SchoolBankSoalController extends Controller
             })
             ->latest();
 
-        $search       = request('search');
-        $teacherId    = request('teacher_id');
+        $search = request('search');
+        $teacherId = request('teacher_id');
         $questionType = request('question_type');
-        $difficulty   = request('difficulty');
+        $difficulty = request('difficulty');
 
         $query
             ->when($search, fn ($q) => $q->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%")
-                  ->orWhere('topic', 'like', "%{$search}%");
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('topic', 'like', "%{$search}%");
             }))
-            ->when($teacherId,    fn ($q) => $q->where('user_id', $teacherId))
+            ->when($teacherId, fn ($q) => $q->where('user_id', $teacherId))
             ->when($questionType, fn ($q) => $q->where('question_type', $questionType))
-            ->when($difficulty,   fn ($q) => $q->where('difficulty', $difficulty));
+            ->when($difficulty, fn ($q) => $q->where('difficulty', $difficulty));
 
         $questionSets = $query->paginate(20)->withQueryString();
 
@@ -48,7 +48,7 @@ class SchoolBankSoalController extends Controller
 
         // Statistik ringkas
         $stats = [
-            'total'    => $query->count(),
+            'total' => $query->count(),
             'teachers' => $teachers->count(),
         ];
 

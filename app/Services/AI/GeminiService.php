@@ -10,15 +10,15 @@ class GeminiService extends AbstractAIService
     public function generateQuestions(array $data): array
     {
         $config = config('ai.providers.gemini');
-        $key    = $config['key'];
-        $model  = $config['model'];
+        $key = $config['key'];
+        $model = $config['model'];
 
         if (empty($key)) {
             throw new \Exception('GEMINI_API_KEY belum diatur di file .env.');
         }
 
         // Jika ada gambar, gunakan Vision API untuk dapatkan deskripsi dulu
-        if (!empty($data['material_image'])) {
+        if (! empty($data['material_image'])) {
             $data['image_description'] = $this->describeImage(
                 $data['material_image'],
                 $key,
@@ -33,15 +33,15 @@ class GeminiService extends AbstractAIService
         $parts = [['text' => $prompt]];
 
         // Jika ada gambar DAN ingin kirim langsung ke Vision (multimodal)
-        if (!empty($data['material_image']) && Storage::disk('local')->exists($data['material_image'])) {
+        if (! empty($data['material_image']) && Storage::disk('local')->exists($data['material_image'])) {
             $imageData = base64_encode(Storage::disk('local')->get($data['material_image']));
-            $mimeType  = Storage::disk('local')->mimeType($data['material_image']);
+            $mimeType = Storage::disk('local')->mimeType($data['material_image']);
 
             // Tambahkan gambar sebagai part kedua
             $parts[] = [
                 'inline_data' => [
                     'mime_type' => $mimeType,
-                    'data'      => $imageData,
+                    'data' => $imageData,
                 ],
             ];
 
@@ -64,7 +64,7 @@ class GeminiService extends AbstractAIService
             );
 
         if (! $response->successful()) {
-            throw new \Exception('Gemini API Error: ' . $response->body());
+            throw new \Exception('Gemini API Error: '.$response->body());
         }
 
         $text = $response->json('candidates.0.content.parts.0.text');
@@ -74,9 +74,9 @@ class GeminiService extends AbstractAIService
         }
 
         return [
-            'prompt'            => $prompt,
-            'raw_result'        => $text,
-            'model'             => $model,
+            'prompt' => $prompt,
+            'raw_result' => $text,
+            'model' => $model,
             'image_description' => $data['image_description'] ?? null,
         ];
     }
@@ -97,7 +97,7 @@ class GeminiService extends AbstractAIService
         }
 
         $imageData = base64_encode(Storage::disk('local')->get($imagePath));
-        $mimeType  = Storage::disk('local')->mimeType($imagePath);
+        $mimeType = Storage::disk('local')->mimeType($imagePath);
 
         $response = Http::timeout(30)
             ->post(
@@ -109,14 +109,14 @@ class GeminiService extends AbstractAIService
                                 [
                                     'inline_data' => [
                                         'mime_type' => $mimeType,
-                                        'data'      => $imageData,
+                                        'data' => $imageData,
                                     ],
                                 ],
                                 [
-                                    'text' => "Deskripsikan gambar ini secara detail dalam Bahasa Indonesia. "
-                                        . "Konteks: gambar ini adalah materi pelajaran {$subject} tentang {$topic}. "
-                                        . "Sebutkan semua elemen, label, angka, teks, diagram, atau bagian yang terlihat. "
-                                        . "Deskripsi akan digunakan oleh AI lain untuk membuat soal ujian.",
+                                    'text' => 'Deskripsikan gambar ini secara detail dalam Bahasa Indonesia. '
+                                        ."Konteks: gambar ini adalah materi pelajaran {$subject} tentang {$topic}. "
+                                        .'Sebutkan semua elemen, label, angka, teks, diagram, atau bagian yang terlihat. '
+                                        .'Deskripsi akan digunakan oleh AI lain untuk membuat soal ujian.',
                                 ],
                             ],
                         ],

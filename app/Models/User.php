@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,11 +23,11 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at'    => 'datetime',
-            'password'             => 'hashed',
-            'quota_reset_at'       => 'datetime',
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'quota_reset_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
-            'is_active'            => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -56,11 +55,30 @@ class User extends Authenticatable implements MustVerifyEmail
 
     // ── Role helpers ──────────────────────────────────────────────────────────
 
-    public function isSuperAdmin(): bool   { return $this->role === 'super_admin'; }
-    public function isSchoolAdmin(): bool  { return $this->role === 'school_admin'; }
-    public function isTeacher(): bool      { return $this->role === 'teacher'; }
-    public function isIndividual(): bool   { return $this->role === 'individual'; }
-    public function hasSchool(): bool      { return $this->school_id !== null; }
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isSchoolAdmin(): bool
+    {
+        return $this->role === 'school_admin';
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    public function isIndividual(): bool
+    {
+        return $this->role === 'individual';
+    }
+
+    public function hasSchool(): bool
+    {
+        return $this->school_id !== null;
+    }
 
     // ── Quota helpers ─────────────────────────────────────────────────────────
 
@@ -85,7 +103,9 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->quota_used_this_month < 10;
         }
 
-        if ($plan->quota_per_month === -1) return true; // unlimited
+        if ($plan->quota_per_month === -1) {
+            return true;
+        } // unlimited
 
         return $this->quota_used_this_month < $plan->quota_per_month;
     }
@@ -101,10 +121,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $this->resetQuotaIfNeeded();
 
-        $plan  = $this->subscriptionPlan;
+        $plan = $this->subscriptionPlan;
         $limit = $plan ? $plan->quota_per_month : 10;
 
-        if ($limit === -1) return -1; // unlimited
+        if ($limit === -1) {
+            return -1;
+        } // unlimited
 
         return max(0, $limit - $this->quota_used_this_month);
     }
@@ -145,6 +167,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         if ($this->hasSchool()) {
             $this->school?->incrementQuota();
+
             return;
         }
 
@@ -160,7 +183,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if (! $this->quota_reset_at || $this->quota_reset_at->isPast()) {
             $this->update([
                 'quota_used_this_month' => 0,
-                'quota_reset_at'        => now()->startOfMonth()->addMonth(),
+                'quota_reset_at' => now()->startOfMonth()->addMonth(),
             ]);
         }
     }

@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Alias middleware agar bisa dipakai di routes
         $middleware->alias([
-            'role'        => CheckRole::class,
+            'role' => CheckRole::class,
             'check.quota' => CheckQuota::class,
         ]);
     })

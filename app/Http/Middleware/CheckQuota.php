@@ -27,7 +27,7 @@ class CheckQuota
 
             return back()->withErrors([
                 'quota' => "Quota generate soal bulan ini sudah habis (sisa: {$remaining}). "
-                    . "Upgrade plan untuk mendapatkan lebih banyak quota.",
+                    .'Upgrade plan untuk mendapatkan lebih banyak quota.',
             ]);
         }
 

@@ -6,13 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::table('question_sets', function (Blueprint $table) {
             $table->string('material_file')->nullable()->after('ai_error');
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::table('question_sets', function (Blueprint $table) {
             $table->dropColumn('material_file');
         });

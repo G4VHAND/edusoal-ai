@@ -16,11 +16,11 @@ class GenerateSoalTest extends TestCase
     private function makeVerifiedUser(array $attrs = []): User
     {
         return User::factory()->create([
-            'email_verified_at'     => now(),
-            'role'                  => 'individual',
+            'email_verified_at' => now(),
+            'role' => 'individual',
             'quota_used_this_month' => 0,
-            'quota_reset_at'        => now()->addMonth(),
-            'is_active'             => true,
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
             ...$attrs,
         ]);
     }
@@ -28,22 +28,22 @@ class GenerateSoalTest extends TestCase
     private function validPayload(array $overrides = []): array
     {
         return array_merge([
-            'title'           => 'UTS Matematika',
-            'subject'         => 'Matematika',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Persamaan Linear',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sedang',
-            'curriculum'      => 'merdeka',
+            'title' => 'UTS Matematika',
+            'subject' => 'Matematika',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Persamaan Linear',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sedang',
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 5,
-            'ai_provider'     => 'gemini',
+            'ai_provider' => 'gemini',
         ], $overrides);
     }
 
     public function test_generate_soal_page_accessible_for_verified_user(): void
     {
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->get('/generate-soal');
 
         $response->assertOk();
@@ -53,7 +53,7 @@ class GenerateSoalTest extends TestCase
     {
         Queue::fake();
 
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->post('/generate-soal', $this->validPayload());
 
         Queue::assertPushed(GenerateQuestionsJob::class);
@@ -69,8 +69,8 @@ class GenerateSoalTest extends TestCase
 
         $this->assertDatabaseHas('question_sets', [
             'user_id' => $user->id,
-            'title'   => 'UTS Matematika',
-            'status'  => 'pending',
+            'title' => 'UTS Matematika',
+            'status' => 'pending',
         ]);
     }
 
@@ -78,7 +78,7 @@ class GenerateSoalTest extends TestCase
     {
         Queue::fake();
 
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->post('/generate-soal', $this->validPayload());
 
         $questionSet = QuestionSet::where('user_id', $user->id)->first();
@@ -89,7 +89,7 @@ class GenerateSoalTest extends TestCase
     {
         Queue::fake();
 
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->post('/generate-soal', $this->validPayload([
             'grade' => 'Kelas 99 Tidak Ada',
         ]));
@@ -102,7 +102,7 @@ class GenerateSoalTest extends TestCase
     {
         Queue::fake();
 
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->post('/generate-soal', $this->validPayload([
             'ai_provider' => 'openai',
         ]));
@@ -115,7 +115,7 @@ class GenerateSoalTest extends TestCase
     {
         Queue::fake();
 
-        $user     = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $response = $this->actingAs($user)->post('/generate-soal', $this->validPayload([
             'total_questions' => 51,
         ]));
@@ -145,7 +145,7 @@ class GenerateSoalTest extends TestCase
         $this->actingAs($user)->post('/generate-soal', $this->validPayload());
 
         $questionSet = QuestionSet::where('user_id', $user->id)->first();
-        $response    = $this->actingAs($user)->getJson("/bank-soal/{$questionSet->id}/status");
+        $response = $this->actingAs($user)->getJson("/bank-soal/{$questionSet->id}/status");
 
         $response->assertOk();
         $response->assertJsonStructure(['status', 'has_questions', 'ai_error']);

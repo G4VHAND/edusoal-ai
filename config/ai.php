@@ -27,17 +27,17 @@ return [
     'providers' => [
 
         'gemini' => [
-            'key'     => env('GEMINI_API_KEY'),
-            'model'   => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+            'key' => env('GEMINI_API_KEY'),
+            'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
             'timeout' => 60,
-            'retry'   => 3,
+            'retry' => 3,
             'retry_sleep' => 2000,
         ],
 
         'groq' => [
-            'key'         => env('GROQ_API_KEY'),
-            'model'       => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
-            'timeout'     => 60,
+            'key' => env('GROQ_API_KEY'),
+            'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+            'timeout' => 60,
             'temperature' => 0.3,
         ],
     ],

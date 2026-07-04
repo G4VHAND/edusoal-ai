@@ -22,7 +22,8 @@ class AddQuestionsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -35,16 +36,16 @@ class AddQuestionsJob implements ShouldQueue
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
         $payload = [
-            'subject'           => $questionSet->subject,
-            'grade'             => $questionSet->grade,
-            'topic'             => $questionSet->topic,
-            'question_type'     => $questionSet->question_type,
-            'difficulty'        => $questionSet->difficulty,
-            'curriculum'        => $questionSet->curriculum      ?? 'merdeka',
-            'assessment_type'   => $questionSet->assessment_type ?? 'reguler',
-            'total_questions'   => $this->additionalCount,
-            'material_text'     => null,
-            'material_image'    => null,
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'topic' => $questionSet->topic,
+            'question_type' => $questionSet->question_type,
+            'difficulty' => $questionSet->difficulty,
+            'curriculum' => $questionSet->curriculum ?? 'merdeka',
+            'assessment_type' => $questionSet->assessment_type ?? 'reguler',
+            'total_questions' => $this->additionalCount,
+            'material_text' => null,
+            'material_image' => null,
             'image_description' => null,
         ];
 
@@ -56,9 +57,9 @@ class AddQuestionsJob implements ShouldQueue
             // Gagal total — kembalikan total_questions ke jumlah soal yang
             // benar-benar ada, supaya tidak mismatch dengan tampilan.
             $questionSet->update([
-                'status'          => 'failed',
+                'status' => 'failed',
                 'total_questions' => $existingCount,
-                'ai_error'        => $e->getMessage() ?: 'Semua provider AI gagal merespons saat menambah soal.',
+                'ai_error' => $e->getMessage() ?: 'Semua provider AI gagal merespons saat menambah soal.',
             ]);
 
             throw $e;
@@ -78,9 +79,9 @@ class AddQuestionsJob implements ShouldQueue
             $finalCount = $questionSet->questions()->count();
 
             $questionSet->update([
-                'status'          => 'completed',
+                'status' => 'completed',
                 'total_questions' => $finalCount,
-                'ai_error'        => null,
+                'ai_error' => null,
             ]);
 
             $questionSet->user?->incrementQuota();
@@ -89,9 +90,9 @@ class AddQuestionsJob implements ShouldQueue
         } catch (\Exception $e) {
             // Soal lama tetap aman, hanya gagal menambah yang baru.
             $questionSet->update([
-                'status'          => 'failed',
+                'status' => 'failed',
                 'total_questions' => $existingCount,
-                'ai_error'        => $e->getMessage(),
+                'ai_error' => $e->getMessage(),
             ]);
 
             throw $e;

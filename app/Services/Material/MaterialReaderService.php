@@ -11,8 +11,7 @@ class MaterialReaderService
     /**
      * Ekstrak teks dari file materi yang sudah disimpan di disk 'local'.
      *
-     * @param  string|null $path  Path relatif di dalam disk 'local'
-     * @return string|null
+     * @param  string|null  $path  Path relatif di dalam disk 'local'
      */
     public function extractText(?string $path): ?string
     {
@@ -25,12 +24,12 @@ class MaterialReaderService
             return null;
         }
 
-        $fullPath  = Storage::disk('local')->path($path);
+        $fullPath = Storage::disk('local')->path($path);
         $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
 
         return match ($extension) {
-            'pdf'  => $this->extractPdf($fullPath),
-            'txt'  => $this->extractTxt($fullPath),
+            'pdf' => $this->extractPdf($fullPath),
+            'txt' => $this->extractTxt($fullPath),
             'docx' => $this->extractDocx($fullPath),
             default => null,
         };
@@ -39,8 +38,8 @@ class MaterialReaderService
     private function extractPdf(string $fullPath): ?string
     {
         try {
-            $parser = new Parser();
-            $pdf    = $parser->parseFile($fullPath);
+            $parser = new Parser;
+            $pdf = $parser->parseFile($fullPath);
 
             return trim($pdf->getText()) ?: null;
         } catch (\Exception $e) {
@@ -59,12 +58,12 @@ class MaterialReaderService
     {
         try {
             $phpWord = IOFactory::load($fullPath);
-            $text    = '';
+            $text = '';
 
             foreach ($phpWord->getSections() as $section) {
                 foreach ($section->getElements() as $element) {
                     if (method_exists($element, 'getText')) {
-                        $text .= $element->getText() . "\n";
+                        $text .= $element->getText()."\n";
                     }
                 }
             }

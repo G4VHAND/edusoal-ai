@@ -14,11 +14,12 @@ class GenerateQuestionsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
+
     public int $timeout = 120;
 
     public function __construct(
-        private readonly int   $questionSetId,
+        private readonly int $questionSetId,
         private readonly array $data,
     ) {}
 
@@ -27,19 +28,19 @@ class GenerateQuestionsJob implements ShouldQueue
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
         // Skip image upload jika fallback ke Groq (Groq tidak support Vision)
-        $hasImage = !empty($this->data['material_image']);
+        $hasImage = ! empty($this->data['material_image']);
 
         $payload = [
-            'subject'           => $this->data['subject'],
-            'grade'             => $this->data['grade'],
-            'topic'             => $this->data['topic'],
-            'question_type'     => $this->data['question_type'],
-            'difficulty'        => $this->data['difficulty'],
-            'curriculum'        => $this->data['curriculum']      ?? 'merdeka',
-            'assessment_type'   => $this->data['assessment_type'] ?? 'reguler',
-            'total_questions'   => $this->data['total_questions'],
-            'material_text'     => $this->data['material_text']  ?? null,
-            'material_image'    => $this->data['material_image'] ?? null,
+            'subject' => $this->data['subject'],
+            'grade' => $this->data['grade'],
+            'topic' => $this->data['topic'],
+            'question_type' => $this->data['question_type'],
+            'difficulty' => $this->data['difficulty'],
+            'curriculum' => $this->data['curriculum'] ?? 'merdeka',
+            'assessment_type' => $this->data['assessment_type'] ?? 'reguler',
+            'total_questions' => $this->data['total_questions'],
+            'material_text' => $this->data['material_text'] ?? null,
+            'material_image' => $this->data['material_image'] ?? null,
             'image_description' => null,
         ];
 
@@ -48,15 +49,15 @@ class GenerateQuestionsJob implements ShouldQueue
         } catch (\Exception $e) {
             // Semua provider gagal
             $questionSet->update([
-                'status'          => 'failed',
+                'status' => 'failed',
                 'is_ai_generated' => false,
-                'ai_error'        => $e->getMessage() ?: 'Semua provider AI gagal merespons.',
+                'ai_error' => $e->getMessage() ?: 'Semua provider AI gagal merespons.',
             ]);
 
             throw $e;
         }
 
-        $aiResponse   = $result['response'];
+        $aiResponse = $result['response'];
         $usedFallback = $result['used_fallback'];
 
         try {
@@ -69,12 +70,12 @@ class GenerateQuestionsJob implements ShouldQueue
             );
 
             $questionSet->update([
-                'status'          => 'completed',
+                'status' => 'completed',
                 'is_ai_generated' => true,
-                'ai_model'        => $aiResponse['model'] ?? null,
-                'ai_prompt'       => $aiResponse['prompt'],
-                'ai_result'       => $aiResponse['raw_result'],
-                'ai_error'        => $usedFallback ? 'Fallback ke provider cadangan digunakan.' : null,
+                'ai_model' => $aiResponse['model'] ?? null,
+                'ai_prompt' => $aiResponse['prompt'],
+                'ai_result' => $aiResponse['raw_result'],
+                'ai_error' => $usedFallback ? 'Fallback ke provider cadangan digunakan.' : null,
             ]);
 
             $questionSet->user?->incrementQuota();
@@ -82,9 +83,9 @@ class GenerateQuestionsJob implements ShouldQueue
 
         } catch (\Exception $e) {
             $questionSet->update([
-                'status'          => 'failed',
+                'status' => 'failed',
                 'is_ai_generated' => false,
-                'ai_error'        => $e->getMessage(),
+                'ai_error' => $e->getMessage(),
             ]);
 
             throw $e;

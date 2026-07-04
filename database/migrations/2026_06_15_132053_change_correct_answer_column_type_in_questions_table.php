@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-   public function up(): void {
+    public function up(): void
+    {
         Schema::table('questions', function (Blueprint $table) {
             $table->text('correct_answer')->nullable()->change();
         });
@@ -17,5 +18,5 @@ return new class extends Migration
         Schema::table('questions', function (Blueprint $table) {
             $table->string('correct_answer')->nullable()->change();
         });
-}
+    }
 };

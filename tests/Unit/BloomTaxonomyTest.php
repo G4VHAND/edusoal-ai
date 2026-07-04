@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Services\AI\AbstractAIService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BloomTaxonomyTest extends TestCase
@@ -11,8 +10,13 @@ class BloomTaxonomyTest extends TestCase
     private function getPrompt(array $data): string
     {
         // Buat anonymous class untuk akses protected method
-        $service = new class extends AbstractAIService {
-            public function generateQuestions(array $data): array { return []; }
+        $service = new class extends AbstractAIService
+        {
+            public function generateQuestions(array $data): array
+            {
+                return [];
+            }
+
             public function exposeBuildPrompt(array $data): string
             {
                 return $this->buildPrompt($data);
@@ -25,14 +29,14 @@ class BloomTaxonomyTest extends TestCase
     private function baseData(): array
     {
         return [
-            'subject'         => 'Biologi',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Sel Tumbuhan',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sedang',
+            'subject' => 'Biologi',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Sel Tumbuhan',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sedang',
             'total_questions' => 5,
-            'material_text'   => null,
-            'material_image'  => null,
+            'material_text' => null,
+            'material_image' => null,
             'image_description' => null,
         ];
     }
@@ -82,7 +86,7 @@ class BloomTaxonomyTest extends TestCase
 
     public function test_material_text_included_when_provided(): void
     {
-        $data   = array_merge($this->baseData(), ['material_text' => 'Sel tumbuhan memiliki dinding sel.']);
+        $data = array_merge($this->baseData(), ['material_text' => 'Sel tumbuhan memiliki dinding sel.']);
         $prompt = $this->getPrompt($data);
 
         $this->assertStringContainsString('Sel tumbuhan memiliki dinding sel.', $prompt);
@@ -91,7 +95,7 @@ class BloomTaxonomyTest extends TestCase
 
     public function test_anti_hallucination_instructions_present_with_material(): void
     {
-        $data   = array_merge($this->baseData(), ['material_text' => 'Materi biologi.']);
+        $data = array_merge($this->baseData(), ['material_text' => 'Materi biologi.']);
         $prompt = $this->getPrompt($data);
 
         $this->assertStringContainsString('ANTI HALLUCINATION', $prompt);
@@ -100,7 +104,7 @@ class BloomTaxonomyTest extends TestCase
 
     public function test_essay_prompt_has_no_options(): void
     {
-        $data   = array_merge($this->baseData(), ['question_type' => 'essay']);
+        $data = array_merge($this->baseData(), ['question_type' => 'essay']);
         $prompt = $this->getPrompt($data);
 
         $this->assertStringNotContainsString('option_a', $prompt);
@@ -121,8 +125,8 @@ class BloomTaxonomyTest extends TestCase
     public function test_material_text_truncated_to_limit(): void
     {
         $longText = str_repeat('a', 10000);
-        $data     = array_merge($this->baseData(), ['material_text' => $longText]);
-        $prompt   = $this->getPrompt($data);
+        $data = array_merge($this->baseData(), ['material_text' => $longText]);
+        $prompt = $this->getPrompt($data);
 
         // Prompt tidak boleh mengandung lebih dari limit karakter material
         $this->assertLessThan(20000, strlen($prompt));

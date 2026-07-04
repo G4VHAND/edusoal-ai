@@ -1,10 +1,14 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\IndividualUserController;
+use App\Http\Controllers\Admin\SchoolBankSoalController;
 use App\Http\Controllers\Admin\SchoolController;
+use App\Http\Controllers\Admin\SchoolLetterheadController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentTemplateController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionSetController;
 use Illuminate\Support\Facades\Route;
@@ -64,19 +68,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('bank-soal.export-template');
 
     // Template Dokumen — guru/individual personal, school admin untuk sekolah
-    Route::get('/templates', [\App\Http\Controllers\DocumentTemplateController::class, 'index'])
+    Route::get('/templates', [DocumentTemplateController::class, 'index'])
         ->name('templates.index');
 
-    Route::get('/templates/create', [\App\Http\Controllers\DocumentTemplateController::class, 'create'])
+    Route::get('/templates/create', [DocumentTemplateController::class, 'create'])
         ->name('templates.create');
 
-    Route::post('/templates', [\App\Http\Controllers\DocumentTemplateController::class, 'store'])
+    Route::post('/templates', [DocumentTemplateController::class, 'store'])
         ->name('templates.store');
 
-    Route::delete('/templates/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'destroy'])
+    Route::delete('/templates/{template}', [DocumentTemplateController::class, 'destroy'])
         ->name('templates.destroy');
 
-    Route::patch('/templates/{template}/set-default', [\App\Http\Controllers\DocumentTemplateController::class, 'setDefault'])
+    Route::patch('/templates/{template}/set-default', [DocumentTemplateController::class, 'setDefault'])
         ->name('templates.set-default');
 });
 
@@ -129,25 +133,25 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
         });
 
         // Bank Soal Sekolah — super_admin & school_admin
-        Route::get('/bank-soal', [\App\Http\Controllers\Admin\SchoolBankSoalController::class, 'index'])
+        Route::get('/bank-soal', [SchoolBankSoalController::class, 'index'])
             ->name('bank-soal.index');
 
-        Route::get('/bank-soal/{questionSet}', [\App\Http\Controllers\Admin\SchoolBankSoalController::class, 'show'])
+        Route::get('/bank-soal/{questionSet}', [SchoolBankSoalController::class, 'show'])
             ->name('bank-soal.show');
 
         // Manajemen user individual (super_admin only)
         Route::middleware('role:super_admin')->prefix('individuals')->name('individuals.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Admin\IndividualUserController::class, 'index'])
+            Route::get('/', [IndividualUserController::class, 'index'])
                 ->name('index');
-            Route::get('/{user}', [\App\Http\Controllers\Admin\IndividualUserController::class, 'show'])
+            Route::get('/{user}', [IndividualUserController::class, 'show'])
                 ->name('show');
-            Route::post('/{user}/update-plan', [\App\Http\Controllers\Admin\IndividualUserController::class, 'updatePlan'])
+            Route::post('/{user}/update-plan', [IndividualUserController::class, 'updatePlan'])
                 ->name('update-plan');
-            Route::post('/{user}/reset-quota', [\App\Http\Controllers\Admin\IndividualUserController::class, 'resetQuota'])
+            Route::post('/{user}/reset-quota', [IndividualUserController::class, 'resetQuota'])
                 ->name('reset-quota');
-            Route::patch('/{user}/toggle-active', [\App\Http\Controllers\Admin\IndividualUserController::class, 'toggleActive'])
+            Route::patch('/{user}/toggle-active', [IndividualUserController::class, 'toggleActive'])
                 ->name('toggle-active');
-            Route::delete('/{user}', [\App\Http\Controllers\Admin\IndividualUserController::class, 'destroy'])
+            Route::delete('/{user}', [IndividualUserController::class, 'destroy'])
                 ->name('destroy');
         });
 
@@ -166,10 +170,10 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
 
         // Kop Surat Sekolah — hanya school_admin
         Route::middleware('role:school_admin')->group(function () {
-            Route::get('/letterhead', [\App\Http\Controllers\Admin\SchoolLetterheadController::class, 'edit'])
+            Route::get('/letterhead', [SchoolLetterheadController::class, 'edit'])
                 ->name('letterhead.edit');
 
-            Route::post('/letterhead', [\App\Http\Controllers\Admin\SchoolLetterheadController::class, 'update'])
+            Route::post('/letterhead', [SchoolLetterheadController::class, 'update'])
                 ->name('letterhead.update');
         });
     });
@@ -181,4 +185,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

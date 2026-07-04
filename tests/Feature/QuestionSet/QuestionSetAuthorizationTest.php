@@ -18,26 +18,26 @@ class QuestionSetAuthorizationTest extends TestCase
     {
         return User::factory()->create(array_merge([
             'email_verified_at' => now(),
-            'role'              => 'individual',
+            'role' => 'individual',
             'quota_used_this_month' => 0,
-            'quota_reset_at'    => now()->addMonth(),
-            'is_active'         => true,
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
         ], $attrs));
     }
 
     private function makeQuestionSet(User $user, array $attrs = []): QuestionSet
     {
         return QuestionSet::create(array_merge([
-            'user_id'         => $user->id,
-            'title'           => 'Test Bank Soal',
-            'subject'         => 'Matematika',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Aljabar',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sedang',
+            'user_id' => $user->id,
+            'title' => 'Test Bank Soal',
+            'subject' => 'Matematika',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Aljabar',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sedang',
             'total_questions' => 5,
-            'ai_provider'     => 'gemini',
-            'status'          => 'completed',
+            'ai_provider' => 'gemini',
+            'status' => 'completed',
             'is_ai_generated' => true,
         ], $attrs));
     }
@@ -47,10 +47,10 @@ class QuestionSetAuthorizationTest extends TestCase
         for ($i = 0; $i < $count; $i++) {
             Question::create([
                 'question_set_id' => $questionSet->id,
-                'question_text'   => "Soal ke-{$i}",
-                'option_a'        => 'A', 'option_b' => 'B',
-                'option_c'        => 'C', 'option_d' => 'D',
-                'correct_answer'  => 'A',
+                'question_text' => "Soal ke-{$i}",
+                'option_a' => 'A', 'option_b' => 'B',
+                'option_c' => 'C', 'option_d' => 'D',
+                'correct_answer' => 'A',
             ]);
         }
     }
@@ -73,7 +73,7 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_can_view_own_question_set(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user);
 
         $response = $this->actingAs($user)->get("/bank-soal/{$questionSet->id}");
@@ -82,8 +82,8 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_cannot_view_other_users_question_set(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $other       = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $other = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner);
 
         $response = $this->actingAs($other)->get("/bank-soal/{$questionSet->id}");
@@ -92,8 +92,8 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_cannot_edit_other_users_question_set(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $other       = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $other = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner);
 
         $response = $this->actingAs($other)->get("/bank-soal/{$questionSet->id}/edit");
@@ -102,8 +102,8 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_cannot_delete_other_users_question_set(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $other       = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $other = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner);
 
         $response = $this->actingAs($other)->delete("/bank-soal/{$questionSet->id}");
@@ -112,8 +112,8 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_cannot_export_other_users_question_set(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $other       = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $other = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner);
 
         $response = $this->actingAs($other)->get("/bank-soal/{$questionSet->id}/export-pdf");
@@ -124,7 +124,7 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_deleted_question_set_not_visible_in_bank_soal(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user);
         $questionSet->delete();
 
@@ -135,9 +135,9 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_soft_delete_does_not_permanently_remove_record(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user);
-        $id          = $questionSet->id;
+        $id = $questionSet->id;
 
         $this->actingAs($user)->delete("/bank-soal/{$id}");
 
@@ -164,26 +164,26 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_can_update_own_question_set(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
 
         // Jumlah soal TIDAK dinaikkan, jadi tidak memicu AddQuestionsJob.
         $response = $this->actingAs($user)->put("/bank-soal/{$questionSet->id}", [
-            'title'           => 'Judul Baru',
-            'subject'         => 'Matematika',
-            'grade'           => 'Kelas 9 SMP',
-            'topic'           => 'Aljabar',
-            'question_type'   => 'multiple_choice',
-            'difficulty'      => 'sulit',
-            'curriculum'      => 'merdeka',
+            'title' => 'Judul Baru',
+            'subject' => 'Matematika',
+            'grade' => 'Kelas 9 SMP',
+            'topic' => 'Aljabar',
+            'question_type' => 'multiple_choice',
+            'difficulty' => 'sulit',
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 5,
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('question_sets', [
-            'id'    => $questionSet->id,
+            'id' => $questionSet->id,
             'title' => 'Judul Baru',
         ]);
     }
@@ -192,18 +192,18 @@ class QuestionSetAuthorizationTest extends TestCase
     {
         Queue::fake();
 
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
 
         $response = $this->actingAs($user)->put("/bank-soal/{$questionSet->id}", [
-            'title'           => $questionSet->title,
-            'subject'         => $questionSet->subject,
-            'grade'           => $questionSet->grade,
-            'topic'           => $questionSet->topic,
-            'question_type'   => $questionSet->question_type,
-            'difficulty'      => $questionSet->difficulty,
-            'curriculum'      => 'merdeka',
+            'title' => $questionSet->title,
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'topic' => $questionSet->topic,
+            'question_type' => $questionSet->question_type,
+            'difficulty' => $questionSet->difficulty,
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 8,
         ]);
@@ -212,7 +212,7 @@ class QuestionSetAuthorizationTest extends TestCase
         Queue::assertPushed(AddQuestionsJob::class);
 
         $this->assertDatabaseHas('question_sets', [
-            'id'     => $questionSet->id,
+            'id' => $questionSet->id,
             'status' => 'processing',
             // Total sementara tetap 5 (jumlah soal aktual) sampai job selesai.
             'total_questions' => 5,
@@ -223,18 +223,18 @@ class QuestionSetAuthorizationTest extends TestCase
     {
         Queue::fake();
 
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
 
         $response = $this->actingAs($user)->put("/bank-soal/{$questionSet->id}", [
-            'title'           => $questionSet->title,
-            'subject'         => $questionSet->subject,
-            'grade'           => $questionSet->grade,
-            'topic'           => $questionSet->topic,
-            'question_type'   => $questionSet->question_type,
-            'difficulty'      => $questionSet->difficulty,
-            'curriculum'      => 'merdeka',
+            'title' => $questionSet->title,
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'topic' => $questionSet->topic,
+            'question_type' => $questionSet->question_type,
+            'difficulty' => $questionSet->difficulty,
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 3,
         ]);
@@ -254,13 +254,13 @@ class QuestionSetAuthorizationTest extends TestCase
         $this->makeQuestions($questionSet, 5);
 
         $response = $this->actingAs($user)->put("/bank-soal/{$questionSet->id}", [
-            'title'           => $questionSet->title,
-            'subject'         => $questionSet->subject,
-            'grade'           => $questionSet->grade,
-            'topic'           => $questionSet->topic,
-            'question_type'   => $questionSet->question_type,
-            'difficulty'      => $questionSet->difficulty,
-            'curriculum'      => 'merdeka',
+            'title' => $questionSet->title,
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'topic' => $questionSet->topic,
+            'question_type' => $questionSet->question_type,
+            'difficulty' => $questionSet->difficulty,
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 8,
         ]);
@@ -271,26 +271,26 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_non_owner_cannot_submit_update_via_put(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $intruder    = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $intruder = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
 
         $response = $this->actingAs($intruder)->put("/bank-soal/{$questionSet->id}", [
-            'title'           => 'Hasil Hack',
-            'subject'         => $questionSet->subject,
-            'grade'           => $questionSet->grade,
-            'topic'           => $questionSet->topic,
-            'question_type'   => $questionSet->question_type,
-            'difficulty'      => $questionSet->difficulty,
-            'curriculum'      => 'merdeka',
+            'title' => 'Hasil Hack',
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'topic' => $questionSet->topic,
+            'question_type' => $questionSet->question_type,
+            'difficulty' => $questionSet->difficulty,
+            'curriculum' => 'merdeka',
             'assessment_type' => 'reguler',
             'total_questions' => 5,
         ]);
 
         $response->assertForbidden();
         $this->assertDatabaseMissing('question_sets', [
-            'id'    => $questionSet->id,
+            'id' => $questionSet->id,
             'title' => 'Hasil Hack',
         ]);
     }
@@ -299,7 +299,7 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_owner_can_delete_a_single_question(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
         $questionToDelete = $questionSet->questions()->first();
@@ -313,14 +313,14 @@ class QuestionSetAuthorizationTest extends TestCase
 
         // total_questions harus otomatis mengikuti jumlah soal aktual.
         $this->assertDatabaseHas('question_sets', [
-            'id'              => $questionSet->id,
+            'id' => $questionSet->id,
             'total_questions' => 4,
         ]);
     }
 
     public function test_cannot_delete_the_last_remaining_question(): void
     {
-        $user        = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($user, ['total_questions' => 1]);
         $this->makeQuestions($questionSet, 1);
         $lastQuestion = $questionSet->questions()->first();
@@ -334,8 +334,8 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_user_cannot_delete_question_from_other_users_question_set(): void
     {
-        $owner       = $this->makeVerifiedUser();
-        $intruder    = $this->makeVerifiedUser();
+        $owner = $this->makeVerifiedUser();
+        $intruder = $this->makeVerifiedUser();
         $questionSet = $this->makeQuestionSet($owner, ['total_questions' => 5]);
         $this->makeQuestions($questionSet, 5);
         $question = $questionSet->questions()->first();
@@ -349,7 +349,7 @@ class QuestionSetAuthorizationTest extends TestCase
 
     public function test_cannot_delete_question_belonging_to_a_different_question_set(): void
     {
-        $user         = $this->makeVerifiedUser();
+        $user = $this->makeVerifiedUser();
         $questionSetA = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $questionSetB = $this->makeQuestionSet($user, ['total_questions' => 5]);
         $this->makeQuestions($questionSetA, 5);

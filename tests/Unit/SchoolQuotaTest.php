@@ -16,27 +16,27 @@ class SchoolQuotaTest extends TestCase
     private function makePlan(array $attrs = []): SubscriptionPlan
     {
         return SubscriptionPlan::create(array_merge([
-            'name'                       => 'Test Plan',
-            'slug'                       => 'test-' . uniqid(),
-            'price_monthly'              => 49000,
-            'price_yearly'               => 490000,
-            'max_teachers'               => 5,
-            'quota_per_month'            => 100,
+            'name' => 'Test Plan',
+            'slug' => 'test-'.uniqid(),
+            'price_monthly' => 49000,
+            'price_yearly' => 490000,
+            'max_teachers' => 5,
+            'quota_per_month' => 100,
             'max_questions_per_generate' => 20,
-            'allow_image_upload'         => false,
-            'allow_export_word'          => true,
-            'allow_export_pdf'           => true,
-            'allow_all_providers'        => true,
-            'is_active'                  => true,
+            'allow_image_upload' => false,
+            'allow_export_word' => true,
+            'allow_export_pdf' => true,
+            'allow_all_providers' => true,
+            'is_active' => true,
         ], $attrs));
     }
 
     private function makeSchool(array $attrs = []): School
     {
         return School::create(array_merge([
-            'name'      => 'Sekolah Test ' . uniqid(),
-            'email'     => uniqid() . '@sekolah.test',
-            'level'     => 'smp',
+            'name' => 'Sekolah Test '.uniqid(),
+            'email' => uniqid().'@sekolah.test',
+            'level' => 'smp',
             'is_active' => true,
         ], $attrs));
     }
@@ -44,22 +44,22 @@ class SchoolQuotaTest extends TestCase
     private function makeSubscription(School $school, SubscriptionPlan $plan, array $attrs = []): SchoolSubscription
     {
         return SchoolSubscription::create(array_merge([
-            'school_id'             => $school->id,
-            'subscription_plan_id'  => $plan->id,
-            'status'                => 'active',
-            'billing_cycle'         => 'monthly',
-            'amount_paid'           => $plan->price_monthly,
-            'quota_used'            => 0,
-            'starts_at'             => now(),
-            'ends_at'               => now()->addMonth(),
-            'quota_reset_at'        => now()->addMonth(),
+            'school_id' => $school->id,
+            'subscription_plan_id' => $plan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'amount_paid' => $plan->price_monthly,
+            'quota_used' => 0,
+            'starts_at' => now(),
+            'ends_at' => now()->addMonth(),
+            'quota_reset_at' => now()->addMonth(),
         ], $attrs));
     }
 
     private function makeTeacher(School $school, array $attrs = []): User
     {
         return User::factory()->create(array_merge([
-            'role'      => 'teacher',
+            'role' => 'teacher',
             'school_id' => $school->id,
             'is_active' => true,
         ], $attrs));
@@ -69,7 +69,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_school_has_quota_from_active_subscription(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $plan = $this->makePlan(['quota_per_month' => 100]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan);
 
@@ -79,7 +79,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_school_quota_decreases_after_increment(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $plan = $this->makePlan(['quota_per_month' => 100]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, ['quota_used' => 10]);
 
@@ -91,7 +91,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_school_without_quota_cannot_generate(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $plan = $this->makePlan(['quota_per_month' => 100]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, ['quota_used' => 100]);
 
@@ -101,7 +101,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_school_unlimited_plan_always_has_quota(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => -1]);
+        $plan = $this->makePlan(['quota_per_month' => -1]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, ['quota_used' => 99999]);
 
@@ -121,7 +121,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_quota_is_shared_across_all_teachers_in_same_school(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $plan = $this->makePlan(['quota_per_month' => 10]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan);
 
@@ -142,7 +142,7 @@ class SchoolQuotaTest extends TestCase
 
     public function test_teacher_blocked_when_school_quota_exhausted_even_if_never_generated_personally(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 5]);
+        $plan = $this->makePlan(['quota_per_month' => 5]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, ['quota_used' => 5]);
 
@@ -154,10 +154,10 @@ class SchoolQuotaTest extends TestCase
     public function test_individual_user_quota_is_not_affected_by_school_pooling(): void
     {
         $individual = User::factory()->create([
-            'role'                   => 'individual',
-            'school_id'              => null,
-            'quota_used_this_month'  => 3,
-            'quota_reset_at'         => now()->addMonth(),
+            'role' => 'individual',
+            'school_id' => null,
+            'quota_used_this_month' => 3,
+            'quota_reset_at' => now()->addMonth(),
         ]);
 
         // User individual tanpa sekolah tetap pakai quota per-akun sendiri.

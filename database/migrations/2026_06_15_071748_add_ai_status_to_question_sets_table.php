@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::table('question_sets', function (Blueprint $table) {
             $table->boolean('is_ai_generated')->default(false)->after('ai_result');
             $table->string('ai_provider')->nullable()->after('is_ai_generated');
@@ -16,7 +17,8 @@ return new class extends Migration
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::table('question_sets', function (Blueprint $table) {
             $table->dropColumn([
                 'is_ai_generated',

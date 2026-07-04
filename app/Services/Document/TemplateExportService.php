@@ -27,10 +27,9 @@ class TemplateExportService
     /**
      * Generate dokumen Word dari template dengan data soal terisi.
      *
-     * @param  string  $templatePath   Path template di disk 'local'
-     * @param  QuestionSet $questionSet
-     * @param  bool  $includeAnswers   true = versi guru, false = versi siswa
-     * @return string  Path file hasil generate (temporary)
+     * @param  string  $templatePath  Path template di disk 'local'
+     * @param  bool  $includeAnswers  true = versi guru, false = versi siswa
+     * @return string Path file hasil generate (temporary)
      */
     public function generate(string $templatePath, QuestionSet $questionSet, bool $includeAnswers = true): string
     {
@@ -87,7 +86,7 @@ class TemplateExportService
         }
 
         // Simpan ke file temporary
-        $outputPath = tempnam(sys_get_temp_dir(), 'edusoal_template_') . '.docx';
+        $outputPath = tempnam(sys_get_temp_dir(), 'edusoal_template_').'.docx';
         $processor->saveAs($outputPath);
 
         return $outputPath;
@@ -100,6 +99,7 @@ class TemplateExportService
     {
         try {
             new TemplateProcessor($fullPath);
+
             return true;
         } catch (\Exception $e) {
             return false;

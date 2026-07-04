@@ -15,18 +15,18 @@ class AdminPanelTest extends TestCase
     private function makePlan(): SubscriptionPlan
     {
         return SubscriptionPlan::create([
-            'name'                       => 'Free',
-            'slug'                       => 'free',
-            'price_monthly'              => 0,
-            'price_yearly'               => 0,
-            'max_teachers'               => 1,
-            'quota_per_month'            => 10,
+            'name' => 'Free',
+            'slug' => 'free',
+            'price_monthly' => 0,
+            'price_yearly' => 0,
+            'max_teachers' => 1,
+            'quota_per_month' => 10,
             'max_questions_per_generate' => 5,
-            'allow_image_upload'         => false,
-            'allow_export_word'          => false,
-            'allow_export_pdf'           => true,
-            'allow_all_providers'        => false,
-            'is_active'                  => true,
+            'allow_image_upload' => false,
+            'allow_export_word' => false,
+            'allow_export_pdf' => true,
+            'allow_all_providers' => false,
+            'is_active' => true,
         ]);
     }
 
@@ -34,9 +34,9 @@ class AdminPanelTest extends TestCase
     {
         return User::factory()->create([
             'email_verified_at' => now(),
-            'role'              => 'super_admin',
-            'quota_reset_at'    => now()->addMonth(),
-            'is_active'         => true,
+            'role' => 'super_admin',
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
         ]);
     }
 
@@ -44,9 +44,9 @@ class AdminPanelTest extends TestCase
     {
         return User::factory()->create([
             'email_verified_at' => now(),
-            'role'              => 'teacher',
-            'quota_reset_at'    => now()->addMonth(),
-            'is_active'         => true,
+            'role' => 'teacher',
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
         ]);
     }
 
@@ -54,7 +54,7 @@ class AdminPanelTest extends TestCase
 
     public function test_super_admin_can_access_admin_dashboard(): void
     {
-        $admin    = $this->makeSuperAdmin();
+        $admin = $this->makeSuperAdmin();
         $response = $this->actingAs($admin)->get('/admin');
 
         $response->assertOk();
@@ -63,7 +63,7 @@ class AdminPanelTest extends TestCase
 
     public function test_teacher_cannot_access_admin_panel(): void
     {
-        $teacher  = $this->makeTeacher();
+        $teacher = $this->makeTeacher();
         $response = $this->actingAs($teacher)->get('/admin');
 
         $response->assertForbidden();
@@ -77,7 +77,7 @@ class AdminPanelTest extends TestCase
 
     public function test_teacher_cannot_access_schools_management(): void
     {
-        $teacher  = $this->makeTeacher();
+        $teacher = $this->makeTeacher();
         $response = $this->actingAs($teacher)->get('/admin/schools');
 
         $response->assertForbidden();
@@ -87,7 +87,7 @@ class AdminPanelTest extends TestCase
 
     public function test_super_admin_can_view_schools_list(): void
     {
-        $admin    = $this->makeSuperAdmin();
+        $admin = $this->makeSuperAdmin();
         $response = $this->actingAs($admin)->get('/admin/schools');
 
         $response->assertOk();
@@ -97,18 +97,18 @@ class AdminPanelTest extends TestCase
     public function test_super_admin_can_create_school(): void
     {
         $admin = $this->makeSuperAdmin();
-        $plan  = $this->makePlan();
+        $plan = $this->makePlan();
 
         $response = $this->actingAs($admin)->post('/admin/schools', [
-            'name'           => 'SMAN 1 Jakarta',
-            'email'          => 'sman1@test.com',
-            'phone'          => '021-1234567',
-            'city'           => 'Jakarta',
-            'province'       => 'DKI Jakarta',
-            'level'          => 'sma',
-            'plan_slug'      => 'free',
-            'admin_name'     => 'Admin Sekolah',
-            'admin_email'    => 'admin@sman1.com',
+            'name' => 'SMAN 1 Jakarta',
+            'email' => 'sman1@test.com',
+            'phone' => '021-1234567',
+            'city' => 'Jakarta',
+            'province' => 'DKI Jakarta',
+            'level' => 'sma',
+            'plan_slug' => 'free',
+            'admin_name' => 'Admin Sekolah',
+            'admin_email' => 'admin@sman1.com',
             'admin_password' => 'password123',
         ]);
 
@@ -116,22 +116,22 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseHas('schools', ['name' => 'SMAN 1 Jakarta']);
         $this->assertDatabaseHas('users', [
             'email' => 'admin@sman1.com',
-            'role'  => 'school_admin',
+            'role' => 'school_admin',
         ]);
     }
 
     public function test_creating_school_also_creates_trial_subscription(): void
     {
         $admin = $this->makeSuperAdmin();
-        $plan  = $this->makePlan();
+        $plan = $this->makePlan();
 
         $this->actingAs($admin)->post('/admin/schools', [
-            'name'           => 'SMPN 2 Bandung',
-            'email'          => 'smpn2@test.com',
-            'level'          => 'smp',
-            'plan_slug'      => 'free',
-            'admin_name'     => 'Admin',
-            'admin_email'    => 'admin@smpn2.com',
+            'name' => 'SMPN 2 Bandung',
+            'email' => 'smpn2@test.com',
+            'level' => 'smp',
+            'plan_slug' => 'free',
+            'admin_name' => 'Admin',
+            'admin_email' => 'admin@smpn2.com',
             'admin_password' => 'password123',
         ]);
 
@@ -139,25 +139,25 @@ class AdminPanelTest extends TestCase
         $this->assertNotNull($school);
         $this->assertDatabaseHas('school_subscriptions', [
             'school_id' => $school->id,
-            'status'    => 'trial',
+            'status' => 'trial',
         ]);
     }
 
     public function test_super_admin_can_toggle_school_active_status(): void
     {
-        $admin  = $this->makeSuperAdmin();
+        $admin = $this->makeSuperAdmin();
         $school = School::create([
-            'name'      => 'Test School',
-            'slug'      => 'test-school',
-            'email'     => 'test@school.com',
-            'level'     => 'sma',
+            'name' => 'Test School',
+            'slug' => 'test-school',
+            'email' => 'test@school.com',
+            'level' => 'sma',
             'is_active' => true,
         ]);
 
         $this->actingAs($admin)->patch("/admin/schools/{$school->id}/toggle-active");
 
         $this->assertDatabaseHas('schools', [
-            'id'        => $school->id,
+            'id' => $school->id,
             'is_active' => false,
         ]);
     }
@@ -166,7 +166,7 @@ class AdminPanelTest extends TestCase
 
     public function test_super_admin_can_view_teachers_list(): void
     {
-        $admin    = $this->makeSuperAdmin();
+        $admin = $this->makeSuperAdmin();
         $response = $this->actingAs($admin)->get('/admin/teachers');
 
         $response->assertOk();
@@ -177,7 +177,7 @@ class AdminPanelTest extends TestCase
         $admin = $this->makeSuperAdmin();
 
         $response = $this->post('/login', [
-            'email'    => $admin->email,
+            'email' => $admin->email,
             'password' => 'password',
         ]);
 
@@ -189,7 +189,7 @@ class AdminPanelTest extends TestCase
         $teacher = $this->makeTeacher();
 
         $response = $this->post('/login', [
-            'email'    => $teacher->email,
+            'email' => $teacher->email,
             'password' => 'password',
         ]);
 

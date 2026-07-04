@@ -15,9 +15,9 @@ class AIServiceFactory
     public static function make(string $provider): AIService
     {
         return match ($provider) {
-            'gemini' => new GeminiService(),
-            'groq'   => new GroqService(),
-            default  => throw new \InvalidArgumentException(
+            'gemini' => new GeminiService,
+            'groq' => new GroqService,
+            default => throw new \InvalidArgumentException(
                 "Provider AI tidak didukung: {$provider}"
             ),
         };

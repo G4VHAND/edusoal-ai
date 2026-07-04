@@ -14,12 +14,12 @@ class SubscriptionPlan extends Model
     ];
 
     protected $casts = [
-        'allow_image_upload'    => 'boolean',
-        'allow_export_word'     => 'boolean',
-        'allow_export_pdf'      => 'boolean',
-        'allow_all_providers'   => 'boolean',
-        'is_active'             => 'boolean',
-        'features'              => 'array',
+        'allow_image_upload' => 'boolean',
+        'allow_export_word' => 'boolean',
+        'allow_export_pdf' => 'boolean',
+        'allow_all_providers' => 'boolean',
+        'is_active' => 'boolean',
+        'features' => 'array',
     ];
 
     public function schoolSubscriptions()
@@ -44,7 +44,10 @@ class SubscriptionPlan extends Model
 
     public function formattedPriceMonthly(): string
     {
-        if ($this->price_monthly === 0) return 'Gratis';
-        return 'Rp ' . number_format($this->price_monthly, 0, ',', '.');
+        if ($this->price_monthly === 0) {
+            return 'Gratis';
+        }
+
+        return 'Rp '.number_format($this->price_monthly, 0, ',', '.');
     }
 }

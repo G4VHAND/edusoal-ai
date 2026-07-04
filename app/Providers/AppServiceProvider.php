@@ -31,9 +31,8 @@ class AppServiceProvider extends ServiceProvider
                 ->by($request->user()?->id ?: $request->ip())
                 ->response(function () use ($limit) {
                     return back()
-                        ->withErrors(['rate_limit' =>
-                            "Terlalu banyak permintaan. Maksimal {$limit} generate soal per menit. "
-                            . "Silakan tunggu sebentar.",
+                        ->withErrors(['rate_limit' => "Terlalu banyak permintaan. Maksimal {$limit} generate soal per menit. "
+                            .'Silakan tunggu sebentar.',
                         ]);
                 });
         });
