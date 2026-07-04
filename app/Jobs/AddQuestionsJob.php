@@ -2,15 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Models\Question;
 use App\Models\QuestionSet;
-use App\Services\AI\AIServiceFactory;
+use App\Services\AI\QuestionGenerationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Generate soal TAMBAHAN untuk question set yang sudah ada, dipicu saat
@@ -32,7 +30,7 @@ class AddQuestionsJob implements ShouldQueue
         private readonly int $additionalCount,
     ) {}
 
-    public function handle(): void
+    public function handle(QuestionGenerationService $service): void
     {
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
@@ -50,54 +48,32 @@ class AddQuestionsJob implements ShouldQueue
             'image_description' => null,
         ];
 
-        // ── Auto-fallback: coba Gemini dulu, jika gagal coba Groq ──────────────
-        $aiResponse = null;
-        $lastError  = null;
-
-        foreach (['gemini', 'groq'] as $providerName) {
-            try {
-                $service    = AIServiceFactory::make($providerName);
-                $aiResponse = $service->generateQuestions($payload);
-                break;
-            } catch (\Exception $e) {
-                $lastError = $e;
-                continue;
-            }
-        }
-
         $existingCount = $questionSet->questions()->count();
 
-        if ($aiResponse === null) {
+        try {
+            $result = $service->generateWithFallback($payload, hasImage: false);
+        } catch (\Exception $e) {
             // Gagal total — kembalikan total_questions ke jumlah soal yang
             // benar-benar ada, supaya tidak mismatch dengan tampilan.
             $questionSet->update([
                 'status'          => 'failed',
                 'total_questions' => $existingCount,
-                'ai_error'        => $lastError?->getMessage() ?? 'Semua provider AI gagal merespons saat menambah soal.',
+                'ai_error'        => $e->getMessage() ?: 'Semua provider AI gagal merespons saat menambah soal.',
             ]);
 
-            throw $lastError ?? new \Exception('Semua provider AI gagal merespons saat menambah soal.');
+            throw $e;
         }
 
-        try {
-            $decoded = $this->parseAiJson($aiResponse['raw_result']);
+        $aiResponse = $result['response'];
 
-            foreach ($decoded['questions'] as $item) {
-                Question::create([
-                    'question_set_id'      => $questionSet->id,
-                    'question_text'        => $item['question_text'] ?? $item['question'] ?? '',
-                    'option_a'             => $item['option_a'] ?? null,
-                    'option_b'             => $item['option_b'] ?? null,
-                    'option_c'             => $item['option_c'] ?? null,
-                    'option_d'             => $item['option_d'] ?? null,
-                    'correct_answer'       => $this->cleanText($item['correct_answer'] ?? null),
-                    'explanation'          => $this->cleanText($item['explanation'] ?? null),
-                    'source_paragraph'     => $this->cleanText($item['source_paragraph'] ?? null),
-                    'needs_image'          => (bool) ($item['needs_image'] ?? false),
-                    'image_recommendation' => $this->cleanText($item['image_recommendation'] ?? null),
-                    'image_description'    => $aiResponse['image_description'] ?? null,
-                ]);
-            }
+        try {
+            $decoded = $service->parseAiJson($aiResponse['raw_result']);
+
+            $service->createQuestions(
+                $questionSet,
+                $decoded['questions'],
+                $aiResponse['image_description'] ?? null,
+            );
 
             $finalCount = $questionSet->questions()->count();
 
@@ -108,11 +84,7 @@ class AddQuestionsJob implements ShouldQueue
             ]);
 
             $questionSet->user?->incrementQuota();
-
-            Cache::forget("dashboard:{$questionSet->user_id}:all");
-            Cache::forget("dashboard:{$questionSet->user_id}:7days");
-            Cache::forget("dashboard:{$questionSet->user_id}:30days");
-            Cache::forget("dashboard:{$questionSet->user_id}:year");
+            $service->clearDashboardCache($questionSet->user_id);
 
         } catch (\Exception $e) {
             // Soal lama tetap aman, hanya gagal menambah yang baru.
@@ -124,38 +96,5 @@ class AddQuestionsJob implements ShouldQueue
 
             throw $e;
         }
-    }
-
-    private function parseAiJson(string $raw): array
-    {
-        $clean = trim($raw);
-        $clean = preg_replace('/^```(?:json)?\s*/i', '', $clean);
-        $clean = preg_replace('/\s*```$/', '', $clean);
-        $clean = trim($clean);
-
-        $decoded = json_decode($clean, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('JSON dari AI tidak valid: ' . json_last_error_msg());
-        }
-
-        if (! isset($decoded['questions']) || ! is_array($decoded['questions'])) {
-            throw new \Exception('Format JSON dari AI tidak memiliki key "questions".');
-        }
-
-        if (count($decoded['questions']) === 0) {
-            throw new \Exception('AI mengembalikan array soal kosong.');
-        }
-
-        return $decoded;
-    }
-
-    private function cleanText(?string $text): ?string
-    {
-        if ($text === null) {
-            return null;
-        }
-
-        return trim(str_replace(['**', '*', '```'], '', $text));
     }
 }

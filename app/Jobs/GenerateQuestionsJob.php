@@ -2,15 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Models\Question;
 use App\Models\QuestionSet;
-use App\Services\AI\AIServiceFactory;
+use App\Services\AI\QuestionGenerationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
 
 class GenerateQuestionsJob implements ShouldQueue
 {
@@ -24,7 +22,7 @@ class GenerateQuestionsJob implements ShouldQueue
         private readonly array $data,
     ) {}
 
-    public function handle(): void
+    public function handle(QuestionGenerationService $service): void
     {
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
@@ -45,54 +43,30 @@ class GenerateQuestionsJob implements ShouldQueue
             'image_description' => null,
         ];
 
-        // ── Auto-fallback: coba Gemini dulu, jika gagal coba Groq ──────────────
-        $providers   = $hasImage ? ['gemini'] : ['gemini', 'groq'];
-        $aiResponse  = null;
-        $lastError   = null;
-        $usedFallback = false;
-
-        foreach ($providers as $index => $providerName) {
-            try {
-                $service    = AIServiceFactory::make($providerName);
-                $aiResponse = $service->generateQuestions($payload);
-                $usedFallback = $index > 0;
-                break; // berhasil, hentikan loop
-            } catch (\Exception $e) {
-                $lastError = $e;
-                continue; // coba provider berikutnya
-            }
-        }
-
-        if ($aiResponse === null) {
+        try {
+            $result = $service->generateWithFallback($payload, $hasImage);
+        } catch (\Exception $e) {
             // Semua provider gagal
             $questionSet->update([
                 'status'          => 'failed',
                 'is_ai_generated' => false,
-                'ai_error'        => $lastError?->getMessage() ?? 'Semua provider AI gagal merespons.',
+                'ai_error'        => $e->getMessage() ?: 'Semua provider AI gagal merespons.',
             ]);
 
-            throw $lastError ?? new \Exception('Semua provider AI gagal merespons.');
+            throw $e;
         }
 
-        try {
-            $decoded = $this->parseAiJson($aiResponse['raw_result']);
+        $aiResponse   = $result['response'];
+        $usedFallback = $result['used_fallback'];
 
-            foreach ($decoded['questions'] as $item) {
-                Question::create([
-                    'question_set_id'      => $questionSet->id,
-                    'question_text'        => $item['question_text'] ?? $item['question'] ?? '',
-                    'option_a'             => $item['option_a'] ?? null,
-                    'option_b'             => $item['option_b'] ?? null,
-                    'option_c'             => $item['option_c'] ?? null,
-                    'option_d'             => $item['option_d'] ?? null,
-                    'correct_answer'       => $this->cleanText($item['correct_answer'] ?? null),
-                    'explanation'          => $this->cleanText($item['explanation'] ?? null),
-                    'source_paragraph'     => $this->cleanText($item['source_paragraph'] ?? null),
-                    'needs_image'          => (bool) ($item['needs_image'] ?? false),
-                    'image_recommendation' => $this->cleanText($item['image_recommendation'] ?? null),
-                    'image_description'    => $aiResponse['image_description'] ?? null,
-                ]);
-            }
+        try {
+            $decoded = $service->parseAiJson($aiResponse['raw_result']);
+
+            $service->createQuestions(
+                $questionSet,
+                $decoded['questions'],
+                $aiResponse['image_description'] ?? null,
+            );
 
             $questionSet->update([
                 'status'          => 'completed',
@@ -104,11 +78,7 @@ class GenerateQuestionsJob implements ShouldQueue
             ]);
 
             $questionSet->user?->incrementQuota();
-
-            Cache::forget("dashboard:{$questionSet->user_id}:all");
-            Cache::forget("dashboard:{$questionSet->user_id}:7days");
-            Cache::forget("dashboard:{$questionSet->user_id}:30days");
-            Cache::forget("dashboard:{$questionSet->user_id}:year");
+            $service->clearDashboardCache($questionSet->user_id);
 
         } catch (\Exception $e) {
             $questionSet->update([
@@ -119,38 +89,5 @@ class GenerateQuestionsJob implements ShouldQueue
 
             throw $e;
         }
-    }
-
-    private function parseAiJson(string $raw): array
-    {
-        $clean = trim($raw);
-        $clean = preg_replace('/^```(?:json)?\s*/i', '', $clean);
-        $clean = preg_replace('/\s*```$/', '', $clean);
-        $clean = trim($clean);
-
-        $decoded = json_decode($clean, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('JSON dari AI tidak valid: ' . json_last_error_msg());
-        }
-
-        if (! isset($decoded['questions']) || ! is_array($decoded['questions'])) {
-            throw new \Exception('Format JSON dari AI tidak memiliki key "questions".');
-        }
-
-        if (count($decoded['questions']) === 0) {
-            throw new \Exception('AI mengembalikan array soal kosong.');
-        }
-
-        return $decoded;
-    }
-
-    private function cleanText(?string $text): ?string
-    {
-        if ($text === null) {
-            return null;
-        }
-
-        return trim(str_replace(['**', '*', '```'], '', $text));
     }
 }

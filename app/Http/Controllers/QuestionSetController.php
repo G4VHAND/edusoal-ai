@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Jobs\AddQuestionsJob;
 use App\Jobs\GenerateQuestionsJob;
+use App\Http\Requests\QuestionSet\StoreQuestionSetRequest;
+use App\Http\Requests\QuestionSet\UpdateQuestionSetRequest;
 use App\Models\Question;
 use App\Models\QuestionSet;
-use App\Services\AI\AIServiceFactory;
 use App\Services\Material\MaterialReaderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,30 +19,9 @@ class QuestionSetController extends Controller
         return view('question_sets.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreQuestionSetRequest $request)
     {
-        $validated = $request->validate([
-            'title'           => 'required|string|max:255',
-            'subject'         => 'required|string|max:255',
-            'grade'           => 'required|string|in:Kelas 1 SD,Kelas 2 SD,Kelas 3 SD,Kelas 4 SD,Kelas 5 SD,Kelas 6 SD,Kelas 7 SMP,Kelas 8 SMP,Kelas 9 SMP,Kelas 10 SMA,Kelas 11 SMA,Kelas 12 SMA,Kelas 10 SMK,Kelas 11 SMK,Kelas 12 SMK',
-            'topic'           => 'required|string|max:255',
-            'question_type'   => 'required|string|in:multiple_choice,essay',
-            'difficulty'      => 'required|string|in:mudah,sedang,sulit',
-            'curriculum'      => 'required|string|in:merdeka,k13',
-            'assessment_type' => 'required|string|in:reguler,hots,akm',
-            'total_questions' => 'required|integer|min:1|max:50',
-            'ai_provider'     => 'required|string|in:' . implode(',', AIServiceFactory::supported()),
-            'material_file'   => [
-                'nullable', 'file', 'max:5120',
-                'mimetypes:application/pdf,application/msword,'
-                    . 'application/vnd.openxmlformats-officedocument.wordprocessingml.document,'
-                    . 'text/plain',
-            ],
-            'material_image'  => [
-                'nullable', 'file', 'max:5120',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp',
-            ],
-        ]);
+        $validated = $request->validated();
 
         $materialPath = $materialOriginalName = $materialText = $materialImage = null;
 
@@ -111,32 +91,11 @@ class QuestionSetController extends Controller
         return view('question_sets.edit', compact('questionSet'));
     }
 
-    public function update(Request $request, QuestionSet $questionSet)
+    public function update(UpdateQuestionSetRequest $request, QuestionSet $questionSet)
     {
-        $this->authorize('update', $questionSet);
-
-        $currentCount = $questionSet->questions()->count();
-
-        $request->validate([
-            'title'           => 'required|string|max:255',
-            'subject'         => 'required|string|max:255',
-            'grade'           => 'required|string|in:Kelas 1 SD,Kelas 2 SD,Kelas 3 SD,Kelas 4 SD,Kelas 5 SD,Kelas 6 SD,Kelas 7 SMP,Kelas 8 SMP,Kelas 9 SMP,Kelas 10 SMA,Kelas 11 SMA,Kelas 12 SMA,Kelas 10 SMK,Kelas 11 SMK,Kelas 12 SMK',
-            'topic'           => 'required|string|max:255',
-            'question_type'   => 'required|string|in:multiple_choice,essay',
-            'difficulty'      => 'required|string|in:mudah,sedang,sulit',
-            'curriculum'      => 'required|string|in:merdeka,k13',
-            'assessment_type' => 'required|string|in:reguler,hots,akm',
-            'total_questions' => [
-                'required', 'integer', 'min:1', 'max:50',
-                function ($attribute, $value, $fail) use ($currentCount) {
-                    if ($value < $currentCount) {
-                        $fail("Tidak bisa mengurangi jumlah soal di sini (saat ini ada {$currentCount} soal). Hapus soal secara manual dari halaman detail jika ingin menguranginya.");
-                    }
-                },
-            ],
-        ]);
-
-        $newTotal     = (int) $request->input('total_questions');
+        $validated    = $request->validated();
+        $currentCount = $request->currentQuestionCount();
+        $newTotal     = (int) $validated['total_questions'];
         $additional   = $newTotal - $currentCount;
         $user         = $questionSet->user;
 
@@ -151,11 +110,15 @@ class QuestionSetController extends Controller
                 ]);
         }
 
-        $questionSet->update($request->only([
-            'title', 'subject', 'grade', 'topic',
-            'question_type', 'difficulty', 'curriculum',
-            'assessment_type',
-        ]) + [
+        $questionSet->update([
+            'title'           => $validated['title'],
+            'subject'         => $validated['subject'],
+            'grade'           => $validated['grade'],
+            'topic'           => $validated['topic'],
+            'question_type'   => $validated['question_type'],
+            'difficulty'      => $validated['difficulty'],
+            'curriculum'      => $validated['curriculum'],
+            'assessment_type' => $validated['assessment_type'],
             // Selama masih menunggu soal tambahan, total_questions sementara
             // tetap ikut angka lama; job yang akan mengisi angka final agar
             // tidak mismatch dengan jumlah soal aktual jika generate gagal.

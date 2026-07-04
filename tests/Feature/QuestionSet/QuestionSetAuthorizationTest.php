@@ -269,6 +269,32 @@ class QuestionSetAuthorizationTest extends TestCase
         Queue::assertNotPushed(AddQuestionsJob::class);
     }
 
+    public function test_non_owner_cannot_submit_update_via_put(): void
+    {
+        $owner       = $this->makeVerifiedUser();
+        $intruder    = $this->makeVerifiedUser();
+        $questionSet = $this->makeQuestionSet($owner, ['total_questions' => 5]);
+        $this->makeQuestions($questionSet, 5);
+
+        $response = $this->actingAs($intruder)->put("/bank-soal/{$questionSet->id}", [
+            'title'           => 'Hasil Hack',
+            'subject'         => $questionSet->subject,
+            'grade'           => $questionSet->grade,
+            'topic'           => $questionSet->topic,
+            'question_type'   => $questionSet->question_type,
+            'difficulty'      => $questionSet->difficulty,
+            'curriculum'      => 'merdeka',
+            'assessment_type' => 'reguler',
+            'total_questions' => 5,
+        ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('question_sets', [
+            'id'    => $questionSet->id,
+            'title' => 'Hasil Hack',
+        ]);
+    }
+
     // ── Hapus soal individual ────────────────────────────────────────────────
 
     public function test_owner_can_delete_a_single_question(): void
