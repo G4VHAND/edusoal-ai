@@ -210,20 +210,20 @@ class SchoolQuotaTest extends TestCase
 
     public function test_subscription_handles_unhydrated_quota_used_attribute(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $plan = $this->makePlan(['quota_per_month' => 10]);
         $school = $this->makeSchool();
 
         // Sengaja TIDAK pass 'quota_used' — persis seperti objek hasil
         // create() yang belum di-refresh dari DB.
         $subscription = SchoolSubscription::create([
-            'school_id'            => $school->id,
+            'school_id' => $school->id,
             'subscription_plan_id' => $plan->id,
-            'status'               => 'active',
-            'billing_cycle'        => 'monthly',
-            'amount_paid'          => $plan->price_monthly,
-            'starts_at'            => now(),
-            'ends_at'              => now()->addMonth(),
-            'quota_reset_at'       => now()->addMonth(),
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'amount_paid' => $plan->price_monthly,
+            'starts_at' => now(),
+            'ends_at' => now()->addMonth(),
+            'quota_reset_at' => now()->addMonth(),
         ]);
 
         $this->assertTrue($subscription->hasQuota());
@@ -232,18 +232,18 @@ class SchoolQuotaTest extends TestCase
 
     public function test_subscription_increment_quota_works_when_attribute_not_hydrated(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $plan = $this->makePlan(['quota_per_month' => 10]);
         $school = $this->makeSchool();
 
         $subscription = SchoolSubscription::create([
-            'school_id'            => $school->id,
+            'school_id' => $school->id,
             'subscription_plan_id' => $plan->id,
-            'status'               => 'active',
-            'billing_cycle'        => 'monthly',
-            'amount_paid'          => $plan->price_monthly,
-            'starts_at'            => now(),
-            'ends_at'              => now()->addMonth(),
-            'quota_reset_at'       => now()->addMonth(),
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'amount_paid' => $plan->price_monthly,
+            'starts_at' => now(),
+            'ends_at' => now()->addMonth(),
+            'quota_reset_at' => now()->addMonth(),
         ]);
 
         $subscription->incrementQuota();

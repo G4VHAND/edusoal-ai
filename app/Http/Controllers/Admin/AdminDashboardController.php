@@ -27,11 +27,11 @@ class AdminDashboardController extends Controller
     private function superAdminDashboard()
     {
         $stats = [
-            'total_schools'     => School::count(),
-            'total_teachers'    => User::where('role', 'teacher')->count(),
+            'total_schools' => School::count(),
+            'total_teachers' => User::where('role', 'teacher')->count(),
             'total_individuals' => User::where('role', 'individual')->count(),
-            'total_questions'   => QuestionSet::count(),
-            'active_subs'       => School::whereHas('subscriptions', fn ($q) => $q->whereIn('status', ['active', 'trial']))->count(),
+            'total_questions' => QuestionSet::count(),
+            'active_subs' => School::whereHas('subscriptions', fn ($q) => $q->whereIn('status', ['active', 'trial']))->count(),
         ];
 
         $recentSchools = School::with('activeSubscription.plan')
@@ -55,10 +55,10 @@ class AdminDashboardController extends Controller
         abort_if(! $school, 403, 'Akun Anda tidak terhubung ke sekolah manapun.');
 
         $stats = [
-            'total_teachers'  => $school->users()->where('role', 'teacher')->count(),
+            'total_teachers' => $school->users()->where('role', 'teacher')->count(),
             'total_questions' => QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id))->count(),
-            'quota_used'      => $school->quotaUsed(),
-            'quota_limit'     => $school->quotaLimit(),
+            'quota_used' => $school->quotaUsed(),
+            'quota_limit' => $school->quotaLimit(),
         ];
 
         $plan = $school->activePlan();

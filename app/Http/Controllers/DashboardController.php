@@ -62,7 +62,7 @@ class DashboardController extends Controller
                 ->get()
                 ->map(fn ($row) => [
                     'subject' => $row->subject,
-                    'month'   => $row->created_at->month,
+                    'month' => $row->created_at->month,
                 ])
                 ->toArray(); // ← convert ke array agar bisa di-cache dengan aman
 
