@@ -38,6 +38,7 @@
 
             <nav class="flex-1 px-4 py-6 space-y-2">
 
+                @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
                 <a href="{{ route('dashboard') }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
                    {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
@@ -46,6 +47,7 @@
                     </svg>
                     Dashboard
                 </a>
+                @endif
 
                 {{-- Generate Soal & Bank Soal — hanya untuk guru dan individual --}}
                 @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
@@ -236,15 +238,19 @@
             {{-- Mobile Menu --}}
             <div class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 overflow-x-auto">
                 <div class="flex gap-3 min-w-max">
+                    @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
                     <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-xl font-semibold {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700' }}">
                         Dashboard
                     </a>
-                    @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
                     <a href="{{ route('generate-soal') }}" class="px-4 py-2 rounded-xl font-semibold {{ request()->routeIs('generate-soal*') ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700' }}">
                         Generate
                     </a>
                     <a href="{{ route('bank-soal') }}" class="px-4 py-2 rounded-xl font-semibold {{ request()->routeIs('bank-soal*') ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700' }}">
                         Bank Soal
+                    </a>
+                    @else
+                    <a href="{{ route('admin.dashboard') }}" class="px-4 py-2 rounded-xl font-semibold {{ request()->routeIs('admin.*') ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-700' }}">
+                        Admin Panel
                     </a>
                     @endif
                     <a href="{{ route('profile.edit') }}" class="px-4 py-2 rounded-xl font-semibold {{ request()->routeIs('profile.edit') ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700' }}">

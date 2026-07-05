@@ -132,4 +132,43 @@ class UserQuotaTest extends TestCase
         $this->assertTrue($proUser->canExportWord());
         $this->assertTrue($proUser->canUseAllProviders());
     }
+
+    // ── Null-safety: atribut quota bisa belum "ter-hydrate" di memori ───────
+    // (mis. langsung dipakai dari objek hasil create() tanpa refresh() —
+    // TeacherController::store() & RegisteredUserController::store() TIDAK
+    // PERNAH set quota_used_this_month eksplisit; DB kasih default 0 ke
+    // row-nya, tapi objek Eloquent di memori tidak otomatis ter-refresh,
+    // jadi atribut itu kosong di $attributes sampai benar-benar di-refresh.)
+
+    public function test_quota_used_returns_zero_not_null_when_attribute_not_hydrated(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'individual',
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
+            // sengaja TIDAK set quota_used_this_month, persis seperti alur
+            // asli di TeacherController/RegisteredUserController.
+        ]);
+
+        // Pakai objek in-memory apa adanya (belum di-refresh dari DB).
+        $this->assertSame(0, $user->quotaUsed());
+        $this->assertTrue($user->hasQuota());
+        $this->assertEquals(10, $user->remainingQuota());
+    }
+
+    public function test_increment_quota_works_correctly_when_attribute_not_hydrated(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'individual',
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
+        ]);
+
+        $user->incrementQuota();
+        $user->refresh();
+
+        // Bukan tetap null (SQL NULL+1=NULL) — harus jadi 1.
+        $this->assertEquals(1, $user->quota_used_this_month);
+        $this->assertEquals(1, $user->quotaUsed());
+    }
 }

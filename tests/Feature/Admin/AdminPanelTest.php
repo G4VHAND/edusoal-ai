@@ -315,4 +315,37 @@ class AdminPanelTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    // ── Dashboard biasa harus redirect admin, bukan jadi dead-end ───────────────
+
+    public function test_super_admin_visiting_regular_dashboard_gets_redirected_to_admin(): void
+    {
+        $admin = $this->makeSuperAdmin();
+
+        $response = $this->actingAs($admin)->get('/dashboard');
+
+        $response->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_school_admin_visiting_regular_dashboard_gets_redirected_to_admin(): void
+    {
+        $plan   = $this->makePlan();
+        $school = $this->makeSchool();
+        $this->makeSchoolSubscription($school, $plan);
+        $admin  = $this->makeSchoolAdmin($school);
+
+        $response = $this->actingAs($admin)->get('/dashboard');
+
+        $response->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_teacher_visiting_regular_dashboard_is_not_redirected(): void
+    {
+        // Regresi — pastikan fix ini tidak ikut mengganggu guru biasa.
+        $teacher = $this->makeTeacher();
+
+        $response = $this->actingAs($teacher)->get('/dashboard');
+
+        $response->assertOk();
+    }
 }

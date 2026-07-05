@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'quota_used_this_month' => 'integer',
             'quota_reset_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
             'is_active' => 'boolean',
@@ -100,14 +101,14 @@ class User extends Authenticatable implements MustVerifyEmail
         $plan = $this->subscriptionPlan;
         if (! $plan) {
             // Default: free plan — 10 generate per bulan
-            return $this->quota_used_this_month < 10;
+            return $this->quotaUsedRaw() < 10;
         }
 
         if ($plan->quota_per_month === -1) {
             return true;
         } // unlimited
 
-        return $this->quota_used_this_month < $plan->quota_per_month;
+        return $this->quotaUsedRaw() < $plan->quota_per_month;
     }
 
     /**
@@ -128,7 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return -1;
         } // unlimited
 
-        return max(0, $limit - $this->quota_used_this_month);
+        return max(0, $limit - $this->quotaUsedRaw());
     }
 
     /**
@@ -143,7 +144,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $this->resetQuotaIfNeeded();
 
-        return $this->quota_used_this_month;
+        return $this->quotaUsedRaw();
+    }
+
+    /**
+     * Kolom quota_used_this_month bisa NULL di database (mis. akun lama
+     * atau default DB tidak ter-apply) — jangan pernah return null dari
+     * method quota manapun, selalu koersi ke 0.
+     */
+    private function quotaUsedRaw(): int
+    {
+        return $this->quota_used_this_month ?? 0;
     }
 
     /**
@@ -172,6 +183,15 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         $this->resetQuotaIfNeeded();
+
+        // SQL "NULL + 1" hasilnya NULL, bukan 1 — kalau kolom belum pernah
+        // disentuh (masih null), set eksplisit ke 0 dulu sebelum increment,
+        // supaya quota tidak "macet" tidak pernah bertambah selamanya.
+        if ($this->quota_used_this_month === null) {
+            $this->quota_used_this_month = 0;
+            $this->save();
+        }
+
         $this->increment('quota_used_this_month');
     }
 

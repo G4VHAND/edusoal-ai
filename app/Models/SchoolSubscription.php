@@ -44,7 +44,7 @@ class SchoolSubscription extends Model
             return -1;
         } // unlimited
 
-        return max(0, $limit - $this->quota_used);
+        return max(0, $limit - ($this->quota_used ?? 0));
     }
 
     /**
@@ -60,7 +60,7 @@ class SchoolSubscription extends Model
             return true;
         } // unlimited
 
-        return $this->quota_used < $limit;
+        return ($this->quota_used ?? 0) < $limit;
     }
 
     /**
@@ -69,6 +69,14 @@ class SchoolSubscription extends Model
     public function incrementQuota(): void
     {
         $this->resetQuotaIfNeeded();
+
+        // SQL "NULL + 1" hasilnya NULL, bukan 1 — jaga-jaga kalau kolom
+        // ini pernah null (pola bug yang sama seperti di User model).
+        if ($this->quota_used === null) {
+            $this->quota_used = 0;
+            $this->save();
+        }
+
         $this->increment('quota_used');
     }
 

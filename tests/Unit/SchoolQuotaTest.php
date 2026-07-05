@@ -203,4 +203,53 @@ class SchoolQuotaTest extends TestCase
         // BUKAN 5 dari subscription trial sekolah B.
         $this->assertEquals(100, $teacherA->remainingQuota());
     }
+
+    // ── Null-safety: atribut quota_used bisa belum "ter-hydrate" di memori ──
+    // (School::quotaUsed() dkk selalu fresh-query, jadi kebal dari isu ini —
+    // yang perlu diuji adalah SchoolSubscription-nya langsung.)
+
+    public function test_subscription_handles_unhydrated_quota_used_attribute(): void
+    {
+        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $school = $this->makeSchool();
+
+        // Sengaja TIDAK pass 'quota_used' — persis seperti objek hasil
+        // create() yang belum di-refresh dari DB.
+        $subscription = SchoolSubscription::create([
+            'school_id'            => $school->id,
+            'subscription_plan_id' => $plan->id,
+            'status'               => 'active',
+            'billing_cycle'        => 'monthly',
+            'amount_paid'          => $plan->price_monthly,
+            'starts_at'            => now(),
+            'ends_at'              => now()->addMonth(),
+            'quota_reset_at'       => now()->addMonth(),
+        ]);
+
+        $this->assertTrue($subscription->hasQuota());
+        $this->assertEquals(10, $subscription->remainingQuota());
+    }
+
+    public function test_subscription_increment_quota_works_when_attribute_not_hydrated(): void
+    {
+        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $school = $this->makeSchool();
+
+        $subscription = SchoolSubscription::create([
+            'school_id'            => $school->id,
+            'subscription_plan_id' => $plan->id,
+            'status'               => 'active',
+            'billing_cycle'        => 'monthly',
+            'amount_paid'          => $plan->price_monthly,
+            'starts_at'            => now(),
+            'ends_at'              => now()->addMonth(),
+            'quota_reset_at'       => now()->addMonth(),
+        ]);
+
+        $subscription->incrementQuota();
+        $subscription->refresh();
+
+        // Bukan tetap null (SQL NULL+1=NULL) — harus jadi 1.
+        $this->assertEquals(1, $subscription->quota_used);
+    }
 }

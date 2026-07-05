@@ -10,6 +10,17 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+
+        // Super admin & school admin tidak generate soal sendiri (diblokir
+        // role:teacher,individual di route /generate-soal), jadi dashboard
+        // personal ini akan selalu kosong buat mereka + tombol "Generate
+        // Soal" di dalamnya akan 403 kalau diklik. Lempar ke dashboard
+        // admin mereka yang sebenarnya, supaya tidak jadi dead-end.
+        if ($user->isSuperAdmin() || $user->isSchoolAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $userId = auth()->id();
         $period = $request->get('period', 'all');
 
@@ -40,14 +51,19 @@ class DashboardController extends Controller
                 ->first();
 
             // ── Query 2: Data untuk chart — simpan sebagai array biasa ────────
+            // Catatan: JANGAN groupBy+MONTH() di level SQL — MONTH() itu
+            // fungsi khusus MySQL, tidak ada di SQLite (dipakai saat testing).
+            // Ambil created_at mentah, ekstrak bulan di PHP (portable).
             $groupedStats = QuestionSet::where('user_id', $userId)
                 ->when($period === '7days', fn ($q) => $q->where('created_at', '>=', now()->subDays(7)))
                 ->when($period === '30days', fn ($q) => $q->where('created_at', '>=', now()->subDays(30)))
                 ->when($period === 'year', fn ($q) => $q->whereYear('created_at', now()->year))
-                ->selectRaw('subject, ai_provider, MONTH(created_at) AS month, COUNT(*) AS total')
-                ->groupBy('subject', 'ai_provider', 'month')
-                ->orderBy('month')
+                ->select('subject', 'created_at')
                 ->get()
+                ->map(fn ($row) => [
+                    'subject' => $row->subject,
+                    'month'   => $row->created_at->month,
+                ])
                 ->toArray(); // ← convert ke array agar bisa di-cache dengan aman
 
             // ── Query 3: Latest question sets — simpan sebagai array biasa ────
@@ -72,17 +88,18 @@ class DashboardController extends Controller
         $groupedStats = collect($data['groupedStats']);
         $latestQuestionSets = collect($data['latestQuestionSets']);
 
-        // Transform
+        // Transform — groupedStats sekarang berisi 1 baris per QuestionSet
+        // (bukan hasil pre-aggregate SQL), jadi hitung total pakai count().
         $subjectStats = $groupedStats
             ->groupBy('subject')
-            ->map(fn ($rows) => (object) ['subject' => $rows->first()['subject'], 'total' => $rows->sum('total')])
+            ->map(fn ($rows) => (object) ['subject' => $rows->first()['subject'], 'total' => $rows->count()])
             ->sortByDesc('total')->values();
 
         $topSubjects = $subjectStats->take(5);
 
         $monthlyActivity = $groupedStats
             ->groupBy('month')
-            ->map(fn ($rows) => (object) ['month' => $rows->first()['month'], 'total' => $rows->sum('total')])
+            ->map(fn ($rows) => (object) ['month' => $rows->first()['month'], 'total' => $rows->count()])
             ->sortBy('month')->values();
 
         // Pre-compute label bulan & total sebagai array biasa (hindari closure di Blade)

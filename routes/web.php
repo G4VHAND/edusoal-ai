@@ -9,12 +9,13 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentTemplateController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionSetController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public ───────────────────────────────────────────────────────────────────
-Route::get('/', fn () => view('welcome'));
+Route::get('/', [LandingController::class, 'index']);
 
 // ─── Dashboard Guru/Individual ────────────────────────────────────────────────
 Route::get('/dashboard', [DashboardController::class, 'index'])
