@@ -62,6 +62,13 @@ class School extends Model
     {
         return $this->hasOne(SchoolSubscription::class)
             ->whereIn('status', ['active', 'trial'])
+            // PENTING: jangan cuma andalkan kolom status — kalau tidak ada
+            // job yang otomatis flip status jadi 'expired', subscription
+            // yang sudah lewat ends_at tapi status-nya masih 'active'/
+            // 'trial' akan tetap dianggap valid selamanya. Cek tanggal
+            // langsung di query supaya expired berhenti seketika, apapun
+            // isi kolom status saat itu.
+            ->where('ends_at', '>=', now())
             ->latest();
     }
 

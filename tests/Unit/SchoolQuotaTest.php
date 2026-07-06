@@ -252,4 +252,93 @@ class SchoolQuotaTest extends TestCase
         // Bukan tetap null (SQL NULL+1=NULL) — harus jadi 1.
         $this->assertEquals(1, $subscription->quota_used);
     }
+
+    // ── Enforcement expired: jangan cuma andalkan kolom status ──────────────
+    // (dulu tidak ada job apapun yang flip status jadi 'expired' otomatis,
+    // jadi subscription yang sudah lewat ends_at tapi status masih
+    // 'active'/'trial' dianggap valid SELAMANYA — sekolah bisa pakai app
+    // gratis tanpa batas waktu setelah trial/langganan habis.)
+
+    public function test_expired_subscription_has_no_quota_even_if_status_still_active(): void
+    {
+        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $school = $this->makeSchool();
+
+        // Status masih 'active' — persis kondisi sebelum diperbaiki, kalau
+        // tidak ada apapun yang pernah flip status-nya.
+        $this->makeSubscription($school, $plan, [
+            'status'  => 'active',
+            'ends_at' => now()->subDay(), // sudah lewat kemarin
+        ]);
+
+        $this->assertFalse($school->hasQuota());
+        $this->assertEquals(0, $school->remainingQuota());
+        $this->assertNull($school->activePlan());
+    }
+
+    public function test_expired_trial_has_no_quota_even_if_status_still_trial(): void
+    {
+        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $school = $this->makeSchool();
+
+        $this->makeSubscription($school, $plan, [
+            'status'  => 'trial',
+            'ends_at' => now()->subDays(3),
+        ]);
+
+        $this->assertFalse($school->hasQuota());
+    }
+
+    public function test_teacher_blocked_from_generating_when_school_subscription_expired(): void
+    {
+        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $school = $this->makeSchool();
+        $this->makeSubscription($school, $plan, [
+            'status'  => 'active',
+            'ends_at' => now()->subDay(),
+        ]);
+
+        $teacher = $this->makeTeacher($school);
+
+        $this->assertFalse($teacher->hasQuota());
+    }
+
+    public function test_subscription_ending_today_still_counts_as_active(): void
+    {
+        // Boundary case — jangan sampai terlalu agresif motong di hari H.
+        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $school = $this->makeSchool();
+        $this->makeSubscription($school, $plan, [
+            'status'  => 'active',
+            'ends_at' => now()->endOfDay(),
+        ]);
+
+        $this->assertTrue($school->hasQuota());
+    }
+
+    // ── Command artisan subscriptions:expire ────────────────────────────────
+
+    public function test_expire_command_flips_status_for_past_due_subscriptions(): void
+    {
+        $plan = $this->makePlan();
+
+        $expiredActive = $this->makeSubscriptionRaw($plan, ['status' => 'active', 'ends_at' => now()->subDays(5)]);
+        $expiredTrial  = $this->makeSubscriptionRaw($plan, ['status' => 'trial', 'ends_at' => now()->subDay()]);
+        $stillValid    = $this->makeSubscriptionRaw($plan, ['status' => 'active', 'ends_at' => now()->addMonth()]);
+        $alreadyMarked = $this->makeSubscriptionRaw($plan, ['status' => 'expired', 'ends_at' => now()->subMonth()]);
+
+        $this->artisan('subscriptions:expire')->assertSuccessful();
+
+        $this->assertEquals('expired', $expiredActive->fresh()->status);
+        $this->assertEquals('expired', $expiredTrial->fresh()->status);
+        $this->assertEquals('active', $stillValid->fresh()->status);
+        $this->assertEquals('expired', $alreadyMarked->fresh()->status);
+    }
+
+    private function makeSubscriptionRaw(SubscriptionPlan $plan, array $attrs): SchoolSubscription
+    {
+        $school = $this->makeSchool();
+
+        return $this->makeSubscription($school, $plan, $attrs);
+    }
 }
