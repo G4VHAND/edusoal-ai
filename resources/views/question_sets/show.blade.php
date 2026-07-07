@@ -138,48 +138,34 @@
                                         </div>
                                     </a>
 
-                                    <a href="{{ route('bank-soal.export-student-word', $questionSet->id) }}"
+                                    <div class="border-t border-slate-100 my-1"></div>
+
+                                    {{-- Word — otomatis pakai kop surat & format sekolah kalau tersedia,
+                                         fallback ke format standar kalau tidak ada. Guru tidak perlu
+                                         memilih atau tahu soal "template" sama sekali. --}}
+                                    <a href="{{ route('bank-soal.export-template', ['questionSet' => $questionSet->id, 'type' => 'guru']) }}"
                                     class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100">
                                         <svg class="w-5 h-5 text-blue-600"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            viewBox="0 0 24 24">
+                                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                             <path d="M14 2v6h6"/>
                                         </svg>
-
                                         <div>
-                                            <p class="font-medium">Word Soal Siswa</p>
-                                            <p class="text-xs text-slate-500">Versi siswa</p>
-                                        </div>
-                                    </a>
-
-                                    <div class="border-t border-slate-100 my-1"></div>
-
-                                    <a href="{{ route('bank-soal.export-template', ['questionSet' => $questionSet->id, 'type' => 'guru']) }}"
-                                    class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100">
-                                        <svg class="w-5 h-5 text-violet-600"
-                                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                            <path d="M8 7h8M8 11h8M8 15h5"/>
-                                        </svg>
-                                        <div>
-                                            <p class="font-medium">Template Sekolah (Guru)</p>
-                                            <p class="text-xs text-slate-500">Pakai kop surat & format sendiri</p>
+                                            <p class="font-medium">Word Kunci Guru</p>
+                                            <p class="text-xs text-slate-500">Versi guru, lengkap dengan jawaban</p>
                                         </div>
                                     </a>
 
                                     <a href="{{ route('bank-soal.export-template', ['questionSet' => $questionSet->id, 'type' => 'siswa']) }}"
                                     class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100">
-                                        <svg class="w-5 h-5 text-violet-600"
+                                        <svg class="w-5 h-5 text-blue-600"
                                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                            <path d="M8 7h8M8 11h8M8 15h5"/>
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <path d="M14 2v6h6"/>
                                         </svg>
                                         <div>
-                                            <p class="font-medium">Template Sekolah (Siswa)</p>
-                                            <p class="text-xs text-slate-500">Pakai kop surat & format sendiri</p>
+                                            <p class="font-medium">Word Soal Siswa</p>
+                                            <p class="text-xs text-slate-500">Versi siswa</p>
                                         </div>
                                     </a>
 
@@ -342,8 +328,8 @@
                         {{ $question->needsImageUpload() ? 'border-amber-300 bg-amber-50/30' : '' }}">
 
                         <div class="flex items-start justify-between gap-3 mb-3">
-                            <p class="font-bold text-slate-900">
-                                {{ $index + 1 }}. {{ $question->question_text }}
+                            <p class="font-bold text-slate-900 text-justify">
+                                {{ $index + 1 }}. {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
                             </p>
 
                             <form method="POST"
@@ -384,31 +370,31 @@
                         @if($questionSet->question_type === 'multiple_choice')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
                                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    A. {{ $question->option_a }}
+                                    A. {!! \App\Services\Document\TextFormatter::toHtml($question->option_a) !!}
                                 </div>
                                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    B. {{ $question->option_b }}
+                                    B. {!! \App\Services\Document\TextFormatter::toHtml($question->option_b) !!}
                                 </div>
                                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    C. {{ $question->option_c }}
+                                    C. {!! \App\Services\Document\TextFormatter::toHtml($question->option_c) !!}
                                 </div>
                                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    D. {{ $question->option_d }}
+                                    D. {!! \App\Services\Document\TextFormatter::toHtml($question->option_d) !!}
                                 </div>
                             </div>
                         @endif
 
                         <div class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
-                            <p class="text-green-700 font-semibold">
-                                Jawaban: {{ $question->correct_answer }}
+                            <p class="text-green-700 font-semibold text-justify">
+                                Jawaban: {!! \App\Services\Document\TextFormatter::toHtml($question->correct_answer) !!}
                             </p>
                         </div>
 
                         @if($question->explanation)
                             <div class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <p class="text-blue-700">
+                                <p class="text-blue-700 text-justify">
                                     <span class="font-semibold">Pembahasan:</span>
-                                    {{ $question->explanation }}
+                                    {!! \App\Services\Document\TextFormatter::toHtml($question->explanation) !!}
                                 </p>
                             </div>
                         @endif
@@ -417,7 +403,7 @@
                             <div class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
                                 <p class="text-slate-500 text-xs">
                                     <span class="font-semibold text-slate-600">📎 Sumber:</span>
-                                    {{ $question->source_paragraph }}
+                                    {!! \App\Services\Document\TextFormatter::toHtml($question->source_paragraph) !!}
                                 </p>
                             </div>
                         @endif

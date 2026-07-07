@@ -244,13 +244,4 @@ Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
 }
 PROMPT;
     }
-
-    protected function cleanText(?string $text): ?string
-    {
-        if ($text === null) {
-            return null;
-        }
-
-        return trim(str_replace(['**', '*', '```'], '', $text));
-    }
 }

@@ -65,19 +65,21 @@ class TemplateExportService
 
             foreach ($questions as $i => $question) {
                 $num = $i + 1;
+                $justify = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH];
+
                 $processor->setValue("nomor#{$num}", (string) $num);
-                $processor->setValue("soal#{$num}", $question->question_text);
+                $this->safeSetComplexValue($processor, "soal#{$num}", $question->question_text, $justify);
 
                 if ($questionSet->question_type === 'multiple_choice') {
-                    $processor->setValue("opsi_a#{$num}", $question->option_a ?? '');
-                    $processor->setValue("opsi_b#{$num}", $question->option_b ?? '');
-                    $processor->setValue("opsi_c#{$num}", $question->option_c ?? '');
-                    $processor->setValue("opsi_d#{$num}", $question->option_d ?? '');
+                    $processor->setValue("opsi_a#{$num}", htmlspecialchars($question->option_a ?? ''));
+                    $processor->setValue("opsi_b#{$num}", htmlspecialchars($question->option_b ?? ''));
+                    $processor->setValue("opsi_c#{$num}", htmlspecialchars($question->option_c ?? ''));
+                    $processor->setValue("opsi_d#{$num}", htmlspecialchars($question->option_d ?? ''));
                 }
 
                 if ($includeAnswers) {
-                    $processor->setValue("jawaban#{$num}", $question->correct_answer ?? '');
-                    $processor->setValue("pembahasan#{$num}", $question->explanation ?? '');
+                    $this->safeSetComplexValue($processor, "jawaban#{$num}", $question->correct_answer);
+                    $this->safeSetComplexValue($processor, "pembahasan#{$num}", $question->explanation, $justify);
                 } else {
                     $processor->setValue("jawaban#{$num}", '');
                     $processor->setValue("pembahasan#{$num}", '');
@@ -113,6 +115,21 @@ class TemplateExportService
     {
         try {
             $processor->setValue($key, htmlspecialchars($value));
+        } catch (\Exception $e) {
+            // Placeholder tidak ada di template — abaikan
+        }
+    }
+
+    /**
+     * Sama seperti safeSetValue(), tapi mengisi placeholder dengan TextRun
+     * (lewat setComplexValue) supaya penanda **bold** dan baris baru dari
+     * hasil generate AI ikut tampil sebagai format sungguhan di dokumen
+     * Word, bukan cuma teks polos.
+     */
+    private function safeSetComplexValue(TemplateProcessor $processor, string $key, ?string $value, array $paragraphStyle = []): void
+    {
+        try {
+            $processor->setComplexValue($key, TextFormatter::toTextRun($value, [], $paragraphStyle));
         } catch (\Exception $e) {
             // Placeholder tidak ada di template — abaikan
         }

@@ -68,7 +68,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/bank-soal/{questionSet}/export-template', [BankSoalController::class, 'exportWithTemplate'])
         ->name('bank-soal.export-template');
 
-    // Template Dokumen — guru/individual personal, school admin untuk sekolah
+});
+
+// ─── Template Dokumen ──────────────────────────────────────────────────────────
+// Hanya untuk admin sekolah (template berlaku untuk semua guru di sekolahnya)
+// dan user individual (template personal, karena tidak ada admin sekolah yang
+// mengelola untuk mereka). Guru TIDAK memiliki akses ke sini — saat export,
+// guru otomatis memakai template default sekolahnya tanpa perlu tahu soal
+// pengelolaan template (lihat BankSoalController::exportWithTemplate).
+Route::middleware(['auth', 'verified', 'role:school_admin,individual'])->group(function () {
+
     Route::get('/templates', [DocumentTemplateController::class, 'index'])
         ->name('templates.index');
 

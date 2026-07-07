@@ -46,6 +46,18 @@ class DocumentTemplateIndexTest extends TestCase
         ], $attrs));
     }
 
+    private function makeIndividual(array $attrs = []): User
+    {
+        return User::factory()->create(array_merge([
+            'email_verified_at' => now(),
+            'role' => 'individual',
+            'school_id' => null,
+            'quota_used_this_month' => 0,
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
+        ], $attrs));
+    }
+
     private function makeSchoolTemplate(School $school, array $attrs = []): DocumentTemplate
     {
         return DocumentTemplate::create(array_merge([
@@ -59,21 +71,11 @@ class DocumentTemplateIndexTest extends TestCase
         ], $attrs));
     }
 
-    public function test_teacher_sees_school_template_on_index_page(): void
-    {
-        $school = $this->makeSchool();
-        $teacher = $this->makeTeacher($school);
-        $template = $this->makeSchoolTemplate($school);
+    // ── Guru: TIDAK punya akses sama sekali ke fitur template ──────────────
+    // (Masukan pembimbing: guru tidak perlu tahu soal template, export
+    // mereka otomatis pakai template default sekolah di belakang layar.)
 
-        $response = $this->actingAs($teacher)->get('/templates');
-
-        $response->assertOk();
-        $response->assertSee('Template dari Sekolah');
-        $response->assertSee($template->name);
-        $response->assertSee('Dipakai otomatis');
-    }
-
-    public function test_teacher_without_personal_template_sees_fallback_message_not_standard_format_message(): void
+    public function test_teacher_cannot_access_templates_index(): void
     {
         $school = $this->makeSchool();
         $teacher = $this->makeTeacher($school);
@@ -81,34 +83,30 @@ class DocumentTemplateIndexTest extends TestCase
 
         $response = $this->actingAs($teacher)->get('/templates');
 
-        $response->assertOk();
-        $response->assertSee('otomatis memakai template sekolah');
-        $response->assertDontSee('Export soal akan menggunakan format standar.');
+        $response->assertForbidden();
     }
 
-    public function test_teacher_without_school_template_sees_standard_format_message(): void
+    public function test_teacher_cannot_access_templates_create_page(): void
     {
         $school = $this->makeSchool();
         $teacher = $this->makeTeacher($school);
-        // Tidak ada template sekolah maupun personal.
 
-        $response = $this->actingAs($teacher)->get('/templates');
+        $response = $this->actingAs($teacher)->get('/templates/create');
 
-        $response->assertOk();
-        $response->assertSee('Export soal akan menggunakan format standar.');
+        $response->assertForbidden();
     }
 
-    public function test_teacher_cannot_see_other_schools_template(): void
+    public function test_teacher_cannot_upload_template(): void
     {
-        $schoolA = $this->makeSchool(['name' => 'SMPN 1 Contoh A', 'email' => 'a@sekolah.test']);
-        $schoolB = $this->makeSchool(['name' => 'SMPN 2 Contoh B', 'email' => 'b@sekolah.test']);
-        $teacherA = $this->makeTeacher($schoolA);
-        $templateB = $this->makeSchoolTemplate($schoolB, ['name' => 'Template Sekolah B']);
+        $school = $this->makeSchool();
+        $teacher = $this->makeTeacher($school);
 
-        $response = $this->actingAs($teacherA)->get('/templates');
+        $response = $this->actingAs($teacher)->post('/templates', [
+            'name' => 'Coba Upload',
+            'type' => 'guru',
+        ]);
 
-        $response->assertOk();
-        $response->assertDontSee('Template Sekolah B');
+        $response->assertForbidden();
     }
 
     public function test_teacher_cannot_delete_school_template(): void
@@ -134,10 +132,33 @@ class DocumentTemplateIndexTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_school_admin_index_unaffected_by_school_templates_section(): void
+    public function test_teacher_sidebar_does_not_show_template_menu(): void
     {
-        // School admin tetap melihat & bisa kelola template sekolahnya seperti biasa
-        // (regresi check — perubahan index() untuk guru tidak boleh mengubah perilaku admin).
+        $school = $this->makeSchool();
+        $teacher = $this->makeTeacher($school);
+
+        $response = $this->actingAs($teacher)->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertDontSee('Template Dokumen');
+    }
+
+    // ── Individual: tetap bisa kelola template personalnya sendiri ─────────
+
+    public function test_individual_can_access_templates_index(): void
+    {
+        $individual = $this->makeIndividual();
+
+        $response = $this->actingAs($individual)->get('/templates');
+
+        $response->assertOk();
+        $response->assertSee('Belum ada template diupload. Export soal akan menggunakan format standar.');
+    }
+
+    // ── School Admin: tetap bisa kelola template sekolahnya seperti biasa ──
+
+    public function test_school_admin_index_shows_school_templates(): void
+    {
         $school = $this->makeSchool();
         $admin = $this->makeSchoolAdmin($school);
         $template = $this->makeSchoolTemplate($school);
@@ -146,6 +167,18 @@ class DocumentTemplateIndexTest extends TestCase
 
         $response->assertOk();
         $response->assertSee($template->name);
-        $response->assertDontSee('Template dari Sekolah'); // section khusus guru saja
+    }
+
+    public function test_school_admin_cannot_see_other_schools_template(): void
+    {
+        $schoolA = $this->makeSchool(['name' => 'SMPN 1 Contoh A', 'email' => 'a@sekolah.test']);
+        $schoolB = $this->makeSchool(['name' => 'SMPN 2 Contoh B', 'email' => 'b@sekolah.test']);
+        $adminA = $this->makeSchoolAdmin($schoolA);
+        $templateB = $this->makeSchoolTemplate($schoolB, ['name' => 'Template Sekolah B']);
+
+        $response = $this->actingAs($adminA)->get('/templates');
+
+        $response->assertOk();
+        $response->assertDontSee('Template Sekolah B');
     }
 }

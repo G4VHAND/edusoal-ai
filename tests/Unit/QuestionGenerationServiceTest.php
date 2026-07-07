@@ -76,10 +76,18 @@ class QuestionGenerationServiceTest extends TestCase
 
     // ── cleanText ─────────────────────────────────────────────────────────────
 
-    public function test_clean_text_strips_markdown_characters(): void
+    public function test_clean_text_preserves_bold_markers_for_later_rendering(): void
     {
-        $this->assertEquals('Jawaban benar', $this->service->cleanText('**Jawaban benar**'));
+        // '**...**' TIDAK lagi dihapus — dipertahankan sebagai penanda bold
+        // yang nanti diproses jadi huruf tebal sungguhan oleh TextFormatter
+        // saat ditampilkan di web / diexport ke PDF/Word.
+        $this->assertEquals('**Jawaban benar**', $this->service->cleanText('**Jawaban benar**'));
+    }
+
+    public function test_clean_text_strips_code_fence_and_trims_whitespace(): void
+    {
         $this->assertEquals('kode', $this->service->cleanText('```kode```'));
+        $this->assertEquals('Halo dunia', $this->service->cleanText('  Halo dunia  '));
     }
 
     public function test_clean_text_returns_null_for_null_input(): void

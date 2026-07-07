@@ -53,11 +53,13 @@
         .question-title {
             font-weight: bold;
             margin-bottom: 8px;
+            text-align: justify;
         }
 
         .options {
             margin-left: 18px;
             margin-bottom: 8px;
+            text-align: justify;
         }
 
         .answer {
@@ -119,7 +121,7 @@
     @foreach($questionSet->questions as $index => $question)
         <div class="question">
             <div class="question-title">
-                {{ $index + 1 }}. {{ $question->question_text }}
+                {{ $index + 1 }}. {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
             </div>
 
             @if($question->hasImage())
@@ -142,10 +144,10 @@
 
             @if($questionSet->question_type === 'multiple_choice')
                 <div class="options">
-                    A. {{ $question->option_a }} <br>
-                    B. {{ $question->option_b }} <br>
-                    C. {{ $question->option_c }} <br>
-                    D. {{ $question->option_d }}
+                    A. {!! \App\Services\Document\TextFormatter::toHtml($question->option_a) !!} <br>
+                    B. {!! \App\Services\Document\TextFormatter::toHtml($question->option_b) !!} <br>
+                    C. {!! \App\Services\Document\TextFormatter::toHtml($question->option_c) !!} <br>
+                    D. {!! \App\Services\Document\TextFormatter::toHtml($question->option_d) !!}
                 </div>
             @endif
         </div>

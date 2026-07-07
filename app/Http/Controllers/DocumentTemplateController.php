@@ -11,7 +11,12 @@ use Illuminate\Support\Facades\Storage;
  *
  * Bisa dipakai oleh:
  * - School Admin: template berlaku untuk semua guru di sekolahnya
- * - Guru/Individual: template personal miliknya sendiri
+ * - Individual: template personal miliknya sendiri (tidak punya sekolah/admin)
+ *
+ * Guru TIDAK memiliki akses ke controller ini (diblokir middleware
+ * `role:school_admin,individual` di routes/web.php) — guru tidak perlu tahu
+ * soal pengelolaan template. Saat export, guru otomatis mendapat dokumen
+ * dengan template default sekolahnya, lihat BankSoalController::exportWithTemplate().
  */
 class DocumentTemplateController extends Controller
 {
@@ -25,18 +30,7 @@ class DocumentTemplateController extends Controller
             ->latest()
             ->get();
 
-        // Guru: tampilkan juga template sekolah (read-only) supaya tidak
-        // mengira export akan pakai format standar padahal sebenarnya
-        // otomatis memakai template default sekolah.
-        $schoolTemplates = collect();
-
-        if (! $user->isSchoolAdmin() && $user->school_id) {
-            $schoolTemplates = DocumentTemplate::where('school_id', $user->school_id)
-                ->latest()
-                ->get();
-        }
-
-        return view('templates.index', compact('templates', 'schoolTemplates'));
+        return view('templates.index', compact('templates'));
     }
 
     public function create()

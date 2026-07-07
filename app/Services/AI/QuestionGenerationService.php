@@ -84,7 +84,12 @@ class QuestionGenerationService
             return null;
         }
 
-        return trim(str_replace(['**', '*', '```'], '', $text));
+        // Catatan: dulu function ini menghapus '**' dan '*' sepenuhnya
+        // (jadi penanda bold dari AI hilang begitu saja). Sekarang '**bold**'
+        // SENGAJA dipertahankan sebagai penanda bold — akan diproses jadi
+        // huruf tebal sungguhan saat ditampilkan/export lewat TextFormatter.
+        // Yang dibersihkan di sini hanya sisa pembungkus kode block AI.
+        return trim(str_replace('```', '', $text));
     }
 
     /**
@@ -96,11 +101,11 @@ class QuestionGenerationService
         foreach ($decodedQuestions as $item) {
             Question::create([
                 'question_set_id' => $questionSet->id,
-                'question_text' => $item['question_text'] ?? $item['question'] ?? '',
-                'option_a' => $item['option_a'] ?? null,
-                'option_b' => $item['option_b'] ?? null,
-                'option_c' => $item['option_c'] ?? null,
-                'option_d' => $item['option_d'] ?? null,
+                'question_text' => $this->cleanText($item['question_text'] ?? $item['question'] ?? ''),
+                'option_a' => $this->cleanText($item['option_a'] ?? null),
+                'option_b' => $this->cleanText($item['option_b'] ?? null),
+                'option_c' => $this->cleanText($item['option_c'] ?? null),
+                'option_d' => $this->cleanText($item['option_d'] ?? null),
                 'correct_answer' => $this->cleanText($item['correct_answer'] ?? null),
                 'explanation' => $this->cleanText($item['explanation'] ?? null),
                 'source_paragraph' => $this->cleanText($item['source_paragraph'] ?? null),

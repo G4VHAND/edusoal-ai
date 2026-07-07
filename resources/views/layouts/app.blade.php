@@ -70,6 +70,10 @@
                     Bank Soal
                 </a>
 
+                {{-- Template Dokumen — hanya individual, guru tidak perlu tahu
+                     soal ini karena export mereka otomatis pakai template
+                     default sekolah masing-masing --}}
+                @if(auth()->user()->isIndividual())
                 <a href="{{ route('templates.index') }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
                    {{ request()->routeIs('templates*') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
@@ -79,6 +83,7 @@
                     </svg>
                     Template Dokumen
                 </a>
+                @endif
                 @endif
 
                 <a href="{{ route('profile.edit') }}"
@@ -205,7 +210,7 @@
         </aside>
 
         {{-- Main Area --}}
-        <div class="flex-1 lg:pl-72">
+        <div class="flex-1 lg:pl-72 flex flex-col min-h-screen">
 
             {{-- Topbar --}}
             <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
@@ -260,9 +265,28 @@
             </div>
 
             {{-- Page Content --}}
-            <main>
+            <main class="flex-1">
                 {{ $slot }}
             </main>
+
+            {{-- Footer --}}
+            <footer class="border-t border-slate-200 bg-white mt-auto">
+                <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                            AI
+                        </div>
+                        <span class="text-sm font-semibold text-slate-700">EduSoal AI</span>
+                        <span class="text-xs text-slate-400">© {{ date('Y') }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-5 text-xs text-slate-400">
+                        <span>Dibuat dengan ❤️ untuk pendidikan Indonesia</span>
+                        <a href="{{ route('profile.edit') }}" class="hover:text-slate-600 transition">Profil</a>
+                        <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Bantuan</a>
+                    </div>
+                </div>
+            </footer>
 
         </div>
 

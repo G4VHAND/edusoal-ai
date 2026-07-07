@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DocumentTemplate;
 use App\Models\QuestionSet;
 use App\Services\Document\TemplateExportService;
+use App\Services\Document\TextFormatter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -74,6 +75,24 @@ class BankSoalController extends Controller
 
         $questionSet->load('questions');
 
+        $tempFile = $this->buildPlainWord($questionSet, includeAnswers: false);
+        $fileName = $questionSet->title.'-Soal.docx';
+
+        return response()
+            ->download($tempFile, $fileName)
+            ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Bangun dokumen Word format standar (tanpa template custom).
+     *
+     * Dipakai langsung oleh tombol "Word Soal Siswa", dan juga sebagai
+     * fallback otomatis di exportWithTemplate() saat sekolah/guru belum
+     * punya template default — supaya guru tetap bisa export tanpa pernah
+     * melihat pesan error soal "upload template dulu".
+     */
+    private function buildPlainWord(QuestionSet $questionSet, bool $includeAnswers): string
+    {
         $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
@@ -91,9 +110,13 @@ class BankSoalController extends Controller
         $section->addTextBreak(1);
 
         foreach ($questionSet->questions as $index => $question) {
-            $section->addText(
+            $justify = ['alignment' => Jc::BOTH];
+
+            TextFormatter::applyToContainer(
+                $section,
                 ($index + 1).'. '.$question->question_text,
-                ['bold' => true]
+                ['bold' => true],
+                $justify
             );
 
             // Sisipkan gambar jika ada
@@ -124,23 +147,37 @@ class BankSoalController extends Controller
             }
 
             if ($questionSet->question_type === 'multiple_choice') {
-                $section->addText('A. '.$question->option_a);
-                $section->addText('B. '.$question->option_b);
-                $section->addText('C. '.$question->option_c);
-                $section->addText('D. '.$question->option_d);
+                TextFormatter::applyToContainer($section, 'A. '.$question->option_a, [], $justify);
+                TextFormatter::applyToContainer($section, 'B. '.$question->option_b, [], $justify);
+                TextFormatter::applyToContainer($section, 'C. '.$question->option_c, [], $justify);
+                TextFormatter::applyToContainer($section, 'D. '.$question->option_d, [], $justify);
+            }
+
+            if ($includeAnswers) {
+                TextFormatter::applyToContainer(
+                    $section,
+                    'Jawaban: '.$question->correct_answer,
+                    ['bold' => true, 'color' => '2563EB'],
+                    $justify
+                );
+
+                if (! empty($question->explanation)) {
+                    TextFormatter::applyToContainer(
+                        $section,
+                        'Pembahasan: '.$question->explanation,
+                        ['italic' => true, 'color' => '475569'],
+                        $justify
+                    );
+                }
             }
 
             $section->addTextBreak(1);
         }
 
-        $fileName = $questionSet->title.'-Soal.docx';
         $tempFile = tempnam(sys_get_temp_dir(), 'edusoal_word_');
-
         IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
 
-        return response()
-            ->download($tempFile, $fileName)
-            ->deleteFileAfterSend(true);
+        return $tempFile;
     }
 
     /**
@@ -209,16 +246,17 @@ class BankSoalController extends Controller
             }
         }
 
-        if (! $template) {
-            return back()->withErrors([
-                'template' => 'Tidak ada template tersedia. Silakan upload template terlebih dahulu di menu Template Dokumen, atau gunakan export standar.',
-            ]);
-        }
+        // Tidak ada template (atau file-nya hilang di server) — jangan
+        // tampilkan error yang menyuruh user "upload template dulu", karena
+        // guru tidak perlu tahu konsep template sama sekali. Cukup fallback
+        // diam-diam ke format standar, seolah memang begitu dari awal.
+        if (! $template || ! Storage::disk('local')->exists($template->file_path)) {
+            $tempFile = $this->buildPlainWord($questionSet, includeAnswers: $type === 'guru');
+            $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
 
-        if (! Storage::disk('local')->exists($template->file_path)) {
-            return back()->withErrors([
-                'template' => 'File template tidak ditemukan di server. Silakan upload ulang template.',
-            ]);
+            return response()
+                ->download($tempFile, $fileName)
+                ->deleteFileAfterSend(true);
         }
 
         try {
@@ -228,15 +266,20 @@ class BankSoalController extends Controller
                 includeAnswers: $type === 'guru'
             );
         } catch (\Exception $e) {
-            \Log::error('Export template gagal: '.$e->getMessage(), [
+            \Log::error('Export template gagal, fallback ke format standar: '.$e->getMessage(), [
                 'question_set_id' => $questionSet->id,
                 'template_id' => $template->id,
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return back()->withErrors([
-                'template' => 'Gagal generate dokumen dari template: '.$e->getMessage(),
-            ]);
+            // Template rusak/gagal diparse — tetap beri user dokumennya
+            // lewat fallback standar daripada dead-end error.
+            $tempFile = $this->buildPlainWord($questionSet, includeAnswers: $type === 'guru');
+            $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
+
+            return response()
+                ->download($tempFile, $fileName)
+                ->deleteFileAfterSend(true);
         }
 
         $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
