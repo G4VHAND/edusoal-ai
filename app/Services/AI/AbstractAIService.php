@@ -132,6 +132,20 @@ MATERIAL;
         $assessInfo = self::ASSESSMENT_MAP[$assessment] ?? self::ASSESSMENT_MAP['reguler'];
         $curriculumName = $currInfo['nama'];
 
+        // ── Contoh nilai di JSON template ────────────────────────────────────
+        // PENTING: AI cenderung meniru pola dari CONTOH KONKRET di JSON
+        // template lebih kuat daripada instruksi prosa di atasnya. Kalau
+        // contohnya statis/generik ("Kutipan singkat dari materi sumber..."),
+        // AI akan ikut generik walau instruksinya sudah bilang "boleh jurnal/
+        // ebook/video" — makanya contohnya HARUS ikut berubah sesuai kondisi.
+        $sourceReferenceExample = $hasMaterial
+            ? 'Materi/dokumen yang diunggah pengguna.'
+            : 'Jurnal Pendidikan Sains Indonesia — topik terkait, ATAU Video pembelajaran YouTube channel edukasi, ATAU Buku Paket sesuai mapel & kelas (isi dengan yang paling relevan dan kamu yakini, JANGAN salin literal contoh ini)';
+
+        $sourceParagraphExample = $hasMaterial
+            ? 'Kutipan singkat (1-2 kalimat) dari materi sumber yang menjadi dasar soal ini.'
+            : "Nama sumber konkret yang relevan dengan JAWABAN soal ini spesifik — misal nama jurnal/ebook/artikel/video yang relevan (JANGAN salin literal contoh ini, JANGAN tulis 'Kutipan singkat dari materi sumber' karena tidak ada materi yang diupload)";
+
         // ── Instruksi anti-hallucination ──────────────────────────────────────
         $antiHallucination = $hasMaterial
             ? <<<'ANTI'
@@ -219,13 +233,13 @@ PANDUAN GAMBAR:
 Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
 
 {
-  "source_reference": "Buku Paket Biologi Kelas 11 Kurikulum Merdeka (Kemdikbud)",
+  "source_reference": "{$sourceReferenceExample}",
   "questions": [
     {
       "question_text": "...",
       "correct_answer": "...",
       "explanation": "...",
-      "source_paragraph": "Kutipan singkat dari materi sumber yang menjadi dasar soal ini.",
+      "source_paragraph": "{$sourceParagraphExample}",
       "needs_image": false,
       "image_recommendation": null
     }
@@ -255,7 +269,7 @@ PANDUAN GAMBAR:
 Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
 
 {
-  "source_reference": "Buku Paket Fisika Kelas 10 Kurikulum Merdeka (Kemdikbud)",
+  "source_reference": "{$sourceReferenceExample}",
   "questions": [
     {
       "question_text": "...",
@@ -265,7 +279,7 @@ Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
       "option_d": "...",
       "correct_answer": "A",
       "explanation": "...",
-      "source_paragraph": "Kutipan singkat dari materi sumber yang menjadi dasar soal ini.",
+      "source_paragraph": "{$sourceParagraphExample}",
       "needs_image": false,
       "image_recommendation": null
     }

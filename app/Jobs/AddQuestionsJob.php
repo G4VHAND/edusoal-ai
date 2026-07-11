@@ -78,9 +78,19 @@ class AddQuestionsJob implements ShouldQueue
 
             $finalCount = $questionSet->questions()->count();
 
+            // Hanya isi kalau belum ada — soal tambahan biasanya untuk topik
+            // yang sama, jangan sampai menimpa referensi awal yang sudah benar.
+            $newSourceReference = $questionSet->source_reference
+                ?: $service->sanitizeSourceText(
+                    $service->cleanText($decoded['source_reference'] ?? null),
+                    $questionSet->subject,
+                    $questionSet->grade
+                );
+
             $questionSet->update([
                 'status' => 'completed',
                 'total_questions' => $finalCount,
+                'source_reference' => $newSourceReference,
                 'ai_error' => null,
             ]);
 

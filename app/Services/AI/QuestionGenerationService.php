@@ -93,6 +93,32 @@ class QuestionGenerationService
     }
 
     /**
+     * Jaring pengaman untuk field sumber (source_paragraph / source_reference).
+     *
+     * Prompt sudah diinstruksikan supaya AI menyebut sumber yang lebih
+     * spesifik (jurnal, ebook, video, dst.) daripada frasa generik
+     * "pengetahuan umum" — tapi LLM tidak selalu 100% patuh ke instruksi
+     * prompt, walau instruksinya sudah jelas dan contohnya sudah diubah.
+     * Daripada terus-menerus bergantung pada kepatuhan AI, kalau responsnya
+     * TETAP mengandung frasa generik itu, kita ganti otomatis di kode
+     * dengan fallback yang lebih informatif (pakai data asli dari
+     * question set, bukan tebakan AI) — supaya guru tidak pernah lihat
+     * "Pengetahuan umum X" lagi di UI, apapun yang dibalas AI.
+     */
+    public function sanitizeSourceText(?string $text, string $subject, string $grade): ?string
+    {
+        if ($text === null || trim($text) === '') {
+            return $text;
+        }
+
+        if (str_contains(mb_strtolower($text), 'pengetahuan umum')) {
+            return "Konsep dasar {$subject} tingkat {$grade}";
+        }
+
+        return $text;
+    }
+
+    /**
      * Buat baris Question dari hasil decode JSON AI. SELALU append —
      * tidak pernah menghapus/menimpa soal yang sudah ada di question set.
      */
@@ -108,7 +134,11 @@ class QuestionGenerationService
                 'option_d' => $this->cleanText($item['option_d'] ?? null),
                 'correct_answer' => $this->cleanText($item['correct_answer'] ?? null),
                 'explanation' => $this->cleanText($item['explanation'] ?? null),
-                'source_paragraph' => $this->cleanText($item['source_paragraph'] ?? null),
+                'source_paragraph' => $this->sanitizeSourceText(
+                    $this->cleanText($item['source_paragraph'] ?? null),
+                    $questionSet->subject,
+                    $questionSet->grade
+                ),
                 'needs_image' => (bool) ($item['needs_image'] ?? false),
                 'image_recommendation' => $this->cleanText($item['image_recommendation'] ?? null),
                 'image_description' => $imageDescription,

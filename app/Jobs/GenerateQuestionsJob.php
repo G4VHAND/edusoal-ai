@@ -75,6 +75,11 @@ class GenerateQuestionsJob implements ShouldQueue
                 'ai_model' => $aiResponse['model'] ?? null,
                 'ai_prompt' => $aiResponse['prompt'],
                 'ai_result' => $aiResponse['raw_result'],
+                'source_reference' => $service->sanitizeSourceText(
+                    $service->cleanText($decoded['source_reference'] ?? null),
+                    $questionSet->subject,
+                    $questionSet->grade
+                ),
                 'ai_error' => $usedFallback ? 'Fallback ke provider cadangan digunakan.' : null,
             ]);
 

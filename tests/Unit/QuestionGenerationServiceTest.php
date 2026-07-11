@@ -95,6 +95,69 @@ class QuestionGenerationServiceTest extends TestCase
         $this->assertNull($this->service->cleanText(null));
     }
 
+    // ── sanitizeSourceText — jaring pengaman anti "pengetahuan umum" ────────────
+
+    public function test_sanitize_source_text_replaces_generic_pengetahuan_umum_phrase(): void
+    {
+        // Kasus nyata yang pernah terjadi: AI tetap balas "Pengetahuan umum
+        // Biologi" walau prompt sudah diinstruksikan untuk tidak begitu.
+        $result = $this->service->sanitizeSourceText('Pengetahuan umum Biologi', 'Biologi', 'Kelas 11 SMA');
+
+        $this->assertEquals('Konsep dasar Biologi tingkat Kelas 11 SMA', $result);
+    }
+
+    public function test_sanitize_source_text_is_case_insensitive(): void
+    {
+        $result = $this->service->sanitizeSourceText('PENGETAHUAN UMUM Fisika', 'Fisika', 'Kelas 10 SMA');
+
+        $this->assertEquals('Konsep dasar Fisika tingkat Kelas 10 SMA', $result);
+    }
+
+    public function test_sanitize_source_text_leaves_specific_source_untouched(): void
+    {
+        $specific = 'Jurnal Pendidikan Sains Indonesia — topik Sistem Peredaran Darah';
+
+        $result = $this->service->sanitizeSourceText($specific, 'Biologi', 'Kelas 11 SMA');
+
+        $this->assertEquals($specific, $result);
+    }
+
+    public function test_sanitize_source_text_passes_through_null_and_empty(): void
+    {
+        $this->assertNull($this->service->sanitizeSourceText(null, 'Biologi', 'Kelas 11 SMA'));
+        $this->assertEquals('', $this->service->sanitizeSourceText('', 'Biologi', 'Kelas 11 SMA'));
+    }
+
+    public function test_create_questions_sanitizes_generic_source_paragraph(): void
+    {
+        $user = User::factory()->create(['role' => 'individual']);
+        $questionSet = QuestionSet::create([
+            'user_id' => $user->id,
+            'title' => 'Test',
+            'subject' => 'Biologi',
+            'grade' => 'Kelas 11 SMA',
+            'topic' => 'Sistem Sirkulasi',
+            'question_type' => 'essay',
+            'difficulty' => 'sedang',
+            'total_questions' => 1,
+            'status' => 'completed',
+        ]);
+
+        $this->service->createQuestions($questionSet, [
+            [
+                'question_text' => 'Jelaskan fungsi jantung.',
+                'correct_answer' => 'Jantung memompa darah.',
+                'source_paragraph' => 'Pengetahuan umum Biologi',
+            ],
+        ]);
+
+        $question = $questionSet->questions()->first();
+
+        // Bukan lagi frasa generik mentah dari AI — sudah diganti oleh
+        // safety net jadi fallback yang lebih informatif.
+        $this->assertEquals('Konsep dasar Biologi tingkat Kelas 11 SMA', $question->source_paragraph);
+    }
+
     // ── createQuestions ───────────────────────────────────────────────────────
 
     public function test_create_questions_appends_without_deleting_existing(): void

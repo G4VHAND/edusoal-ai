@@ -76,6 +76,67 @@ class AIPromptSourceInstructionTest extends TestCase
         $this->assertStringContainsString('Konsep dasar Fisika tingkat Kelas 10 SMA', $prompt);
     }
 
+    public function test_prompt_without_material_json_example_is_no_longer_the_old_generic_placeholder(): void
+    {
+        // Root cause bug yang ditemukan: AI meniru pola dari CONTOH KONKRET
+        // di JSON template lebih kuat daripada instruksi prosa di atasnya.
+        // Contoh lama ini statis untuk kedua kondisi (ada materi / tidak),
+        // jadi walau instruksi prosa sudah diperluas, AI tetap ikut generik
+        // karena mencontoh JSON example ini. Pastikan sudah tidak ada lagi.
+        $prompt = $this->buildPrompt($this->baseData());
+
+        $this->assertStringNotContainsString(
+            '"source_paragraph": "Kutipan singkat dari materi sumber yang menjadi dasar soal ini."',
+            $prompt
+        );
+    }
+
+    public function test_prompt_with_material_json_example_still_shows_quote_placeholder(): void
+    {
+        // Sebaliknya, kalau ADA materi upload, contoh JSON tetap harus
+        // mengarahkan AI untuk mengutip dari materi (bukan ikut berubah
+        // jadi contoh jurnal/YouTube yang tidak relevan di kasus ini).
+        $prompt = $this->buildPrompt($this->baseData(['material_text' => 'Contoh isi materi pembelajaran.']));
+
+        $this->assertStringContainsString(
+            '"source_paragraph": "Kutipan singkat (1-2 kalimat) dari materi sumber yang menjadi dasar soal ini."',
+            $prompt
+        );
+        $this->assertStringNotContainsString('jurnal/ebook/artikel/video', $prompt);
+    }
+
+    public function test_prompt_json_example_block_is_valid_json(): void
+    {
+        // Regresi untuk bug nyata yang pernah terjadi: contoh nilai
+        // (source_reference/source_paragraph) sempat mengandung tanda kutip
+        // dua (") mentah di dalamnya, yang MERUSAK struktur contoh JSON yang
+        // dikirim ke AI — akibatnya AI ikut bingung dan membalas JSON tidak
+        // valid (error "Format JSON dari AI tidak memiliki key questions").
+        // Pastikan blok contoh JSON di akhir prompt selalu valid JSON,
+        // untuk kombinasi tipe soal & kondisi materi.
+        foreach (['multiple_choice', 'essay'] as $questionType) {
+            foreach ([false, true] as $withMaterial) {
+                $data = $this->baseData(array_merge(
+                    ['question_type' => $questionType],
+                    $withMaterial ? ['material_text' => 'Contoh materi pembelajaran singkat.'] : []
+                ));
+                $prompt = $this->buildPrompt($data);
+
+                $jsonStart = strpos($prompt, "\n{\n");
+                $this->assertNotFalse($jsonStart, "Blok contoh JSON tidak ditemukan di prompt ({$questionType}).");
+
+                $jsonBlock = trim(substr($prompt, $jsonStart));
+                $decoded = json_decode($jsonBlock, true);
+
+                $this->assertNotNull(
+                    $decoded,
+                    "Contoh JSON di prompt tidak valid untuk {$questionType} (withMaterial=".($withMaterial ? 'ya' : 'tidak').'): '.json_last_error_msg()."\n\n".$jsonBlock
+                );
+                $this->assertArrayHasKey('questions', $decoded);
+            }
+        }
+    }
+
     // ── Dengan materi upload — tidak boleh berubah (tetap kutipan materi) ───
 
     public function test_prompt_with_material_still_requires_verbatim_quote_from_source(): void
