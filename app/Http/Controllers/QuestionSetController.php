@@ -23,6 +23,11 @@ class QuestionSetController extends Controller
     {
         $validated = $request->validated();
 
+        // Jangan percaya begitu saja input 'ai_provider' dari form — guru
+        // tidak boleh memilih sendiri (provider ditentukan admin sekolah),
+        // dan individual hanya boleh memilih kalau plan-nya mengizinkan.
+        $provider = auth()->user()->resolveAiProvider($validated['ai_provider'] ?? null);
+
         $materialPath = $materialOriginalName = $materialText = $materialImage = null;
 
         if ($request->hasFile('material_file')) {
@@ -47,7 +52,7 @@ class QuestionSetController extends Controller
             'curriculum' => $validated['curriculum'],
             'assessment_type' => $validated['assessment_type'],
             'total_questions' => $validated['total_questions'],
-            'ai_provider' => $validated['ai_provider'],
+            'ai_provider' => $provider,
             'status' => 'pending',
             'is_ai_generated' => false,
             'ai_model' => null,
@@ -68,7 +73,7 @@ class QuestionSetController extends Controller
             'curriculum' => $validated['curriculum'],
             'assessment_type' => $validated['assessment_type'],
             'total_questions' => $validated['total_questions'],
-            'ai_provider' => $validated['ai_provider'],
+            'ai_provider' => $provider,
             'material_text' => $materialText,
             'material_image' => $materialImage,
         ]);

@@ -27,4 +27,39 @@ class AIServiceFactory
     {
         return config('ai.supported_providers', ['gemini', 'groq']);
     }
+
+    /**
+     * Label & keterangan tampilan untuk tiap provider yang didukung —
+     * SATU-SATUNYA tempat sumber label provider dipakai bersama oleh
+     * halaman admin (pilih provider sekolah) dan form generate soal
+     * individual (pilih provider sendiri).
+     *
+     * Saat ini cuma 'gemini' & 'groq' yang aktif (lihat supported()) —
+     * kalau nanti mau menambah provider baru, cukup:
+     *   1. Buat *Service baru yang implement AIService
+     *   2. Tambahkan case-nya di make() di atas
+     *   3. Tambahkan key-nya di config('ai.supported_providers')
+     *   4. Tambahkan entry label di sini
+     * — tidak perlu ubah apapun di Blade/controller lain, karena semua
+     * tempat pemilihan provider sudah menarik data dari sini.
+     */
+    public static function labeled(): array
+    {
+        $labels = [
+            'gemini' => [
+                'label' => 'Google Gemini',
+                'description' => 'Mendukung soal berbasis gambar (Vision AI). Direkomendasikan untuk kebanyakan sekolah.',
+            ],
+            'groq' => [
+                'label' => 'Groq (Llama)',
+                'description' => 'Respons lebih cepat, tapi belum mendukung soal berbasis gambar.',
+            ],
+        ];
+
+        return collect(self::supported())
+            ->mapWithKeys(fn ($key) => [
+                $key => $labels[$key] ?? ['label' => ucfirst($key), 'description' => ''],
+            ])
+            ->all();
+    }
 }

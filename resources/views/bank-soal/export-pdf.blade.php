@@ -51,7 +51,7 @@
         }
 
         .question-title {
-            font-weight: bold;
+            font-weight: normal;
             margin-bottom: 8px;
             text-align: justify;
         }
@@ -123,7 +123,7 @@
     @foreach($questionSet->questions as $index => $question)
         <div class="question">
             <div class="question-title">
-                {{ $index + 1 }}. {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
+                <strong>{{ $index + 1 }}.</strong> {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
             </div>
 
             @if($question->hasImage())

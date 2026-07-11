@@ -168,6 +168,15 @@
                         Kop Surat
                     </a>
 
+                    <a href="{{ route('admin.ai-provider.edit') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
+                       {{ request()->routeIs('admin.ai-provider*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>
+                        </svg>
+                        Provider AI
+                    </a>
+
                     <a href="{{ route('templates.index') }}"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition
                        {{ request()->routeIs('templates*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">

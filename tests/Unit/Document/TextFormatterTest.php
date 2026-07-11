@@ -131,4 +131,27 @@ class TextFormatterTest extends TestCase
             $paragraph->getParagraphStyle()->getAlignment()
         );
     }
+
+    public function test_apply_to_container_prefix_stays_on_same_line_without_forcing_body_bold(): void
+    {
+        $phpWord = new \PhpOffice\PhpWord\PhpWord;
+        $section = $phpWord->addSection();
+
+        // Nomor soal ("1. ") harus tebal, tapi body-nya TIDAK ikut tebal
+        // kecuali memang ditandai **bold** oleh AI — supaya penekanan dari
+        // AI tetap terlihat menonjol dibanding teks sekitarnya.
+        TextFormatter::applyToContainer(
+            $section,
+            'Soal biasa dengan **kata penting**.',
+            [],
+            [],
+            ['text' => '1. ', 'style' => ['bold' => true]]
+        );
+
+        $paragraph = $section->getElements()[0];
+        $elements = $paragraph->getElements();
+
+        // 1 elemen prefix ("1. ") + 2 elemen body (biasa + bold)
+        $this->assertCount(3, $elements);
+    }
 }

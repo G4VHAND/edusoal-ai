@@ -16,7 +16,12 @@ class StoreQuestionSetRequest extends QuestionSetRequest
     {
         return $this->sharedRules() + [
             'total_questions' => 'required|integer|min:1|max:50',
-            'ai_provider' => 'required|string|in:'.implode(',', AIServiceFactory::supported()),
+            // Nullable: guru tidak mengirim field ini sama sekali (provider
+            // sepenuhnya ditentukan sekolah), individual boleh mengirim
+            // preferensinya tapi tetap divalidasi ulang & bisa diabaikan
+            // server lewat User::resolveAiProvider() kalau plan tidak
+            // mengizinkan pilih provider sendiri.
+            'ai_provider' => 'nullable|string|in:'.implode(',', AIServiceFactory::supported()),
             'material_file' => [
                 'nullable', 'file', 'max:5120',
                 'mimetypes:application/pdf,application/msword,'

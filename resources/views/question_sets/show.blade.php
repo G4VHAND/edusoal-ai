@@ -219,13 +219,18 @@
                         {{ $questionSet->created_at->format('d M Y') }}
                     </p>
                 </div>
+            </div>
+
+            {{-- Banner status — di luar grid 6 kolom di atas supaya selalu full-width,
+                 tidak lagi ikut kepencet jadi 1 kolom sempit seperti sebelumnya. --}}
+            <div class="space-y-3 mb-8">
 
                 @if(in_array($questionSet->status, ['pending', 'processing']))
                 {{-- STATUS: Sedang diproses — tampilkan loading, polling setiap 3 detik --}}
                 <div id="processing-banner"
-                     class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
+                     class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
                     <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-amber-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-amber-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                         </svg>
@@ -238,58 +243,112 @@
 
                 @elseif($questionSet->status === 'failed')
                 {{-- STATUS: Gagal --}}
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
-                    <p class="font-semibold text-red-800">AI gagal memproses soal</p>
-                    <p class="text-sm text-red-600 mt-1">{{ $questionSet->ai_error }}</p>
-                </div>
-
-                @elseif($questionSet->is_ai_generated)
-                {{-- STATUS: Selesai --}}
-                <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 mt-4">
-                    <div class="flex items-start justify-between gap-4">
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4M12 16h.01"/>
+                            </svg>
+                        </div>
                         <div>
-                            <p class="font-semibold text-violet-800">✅ AI Generated</p>
-                            @if($questionSet->material_image)
-                                <p class="text-sm text-blue-600 mt-1">📷 Dibuat dari gambar + Vision AI</p>
-                            @endif
+                            <p class="font-semibold text-red-800">AI gagal memproses soal</p>
+                            <p class="text-sm text-red-600 mt-1">{{ $questionSet->ai_error }}</p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Disclaimer wajib review guru --}}
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-3">
-                    <p class="text-amber-800 text-sm">
-                        <span class="font-semibold">⚠️ Perlu direview:</span>
-                        Soal ini digenerate oleh AI dan mungkin mengandung ketidakakuratan.
-                        Setiap soal menyertakan kolom <strong>Sumber</strong> yang menunjukkan dasar pembuatan soal.
-                        Harap periksa setiap soal sebelum digunakan dalam ujian.
-                    </p>
+                @elseif($questionSet->is_ai_generated)
+                {{-- STATUS: Selesai — gabungkan badge "AI Generated" + disclaimer review
+                     jadi satu kartu supaya tidak berantakan jadi 2 kotak terpisah --}}
+                <div class="bg-gradient-to-br from-violet-50 to-white border border-violet-200 rounded-2xl p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>
+                            </svg>
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <p class="font-bold text-violet-900">Dibuat dengan AI</p>
+                                @if($questionSet->material_image)
+                                    <span class="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                                        📷 Vision AI dari gambar
+                                    </span>
+                                @endif
+                            </div>
+
+                            <p class="text-sm text-violet-800/80 mt-2 leading-relaxed">
+                                Soal ini digenerate AI dan mungkin mengandung ketidakakuratan. Setiap soal
+                                menyertakan kolom <strong class="text-violet-900">Sumber</strong> yang
+                                menunjukkan dasar pembuatannya — harap periksa tiap soal sebelum
+                                digunakan dalam ujian.
+                            </p>
+
+                            @if($questionSet->source_reference)
+                                <div class="mt-3 pt-3 border-t border-violet-200/70">
+                                    <p class="text-xs font-semibold text-violet-600 uppercase tracking-wide">Referensi Utama</p>
+                                    <p class="text-sm text-violet-900 mt-0.5">{{ $questionSet->source_reference }}</p>
+
+                                    {{-- Link pencarian DIBANGUN SENDIRI dari teks referensi (bukan
+                                         link buatan AI) — jadi tidak ada risiko link mati/karangan,
+                                         karena Google yang menampilkan hasil pencariannya. --}}
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <a href="https://www.google.com/search?q={{ urlencode($questionSet->source_reference) }}"
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700 hover:text-violet-900 hover:underline">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <circle cx="11" cy="11" r="8"/>
+                                                <path d="M21 21l-4.35-4.35"/>
+                                            </svg>
+                                            Cari di Google
+                                        </a>
+                                        <a href="https://scholar.google.com/scholar?q={{ urlencode($questionSet->source_reference) }}"
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700 hover:text-violet-900 hover:underline">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <circle cx="11" cy="11" r="8"/>
+                                                <path d="M21 21l-4.35-4.35"/>
+                                            </svg>
+                                            Cari di Google Scholar
+                                        </a>
+                                        <a href="https://www.youtube.com/results?search_query={{ urlencode($questionSet->source_reference) }}"
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700 hover:text-violet-900 hover:underline">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="M22 8s-.2-1.4-.8-2c-.8-.8-1.6-.8-2-.9C16.4 5 12 5 12 5s-4.4 0-7.2.1c-.4 0-1.2.1-2 .9C2.2 6.6 2 8 2 8S1.8 9.6 1.8 11.3v1.4C1.8 14.4 2 16 2 16s.2 1.4.8 2c.8.8 1.8.7 2.3.8C7 19 12 19 12 19s4.4 0 7.2-.1c.4 0 1.2-.1 2-.8.6-.6.8-2 .8-2s.2-1.6.2-3.3v-1.4C22.2 9.6 22 8 22 8z"/>
+                                                <path d="M10 14.6V9.4l5 2.6-5 2.6z" fill="white" stroke="none"/>
+                                            </svg>
+                                            Cari di YouTube
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
                 @endif
 
                 @if($questionSet->material_file)
-
-                <div class="bg-white rounded-2xl border border-slate-200 p-5 mt-6">
-
-                    <h3 class="font-bold text-slate-900 mb-3">
-                        Materi Pembelajaran
-                    </h3>
-
-                    <p class="text-slate-600 mb-4">
-                        File materi yang digunakan untuk generate soal.
-                    </p>
-
-                    <div class="flex gap-3">
-                        {{-- File materi disimpan di disk private, tidak bisa diakses langsung via URL --}}
-                        <p class="text-slate-500 text-sm">
-                            📎 {{ $questionSet->material_original_name ?? basename($questionSet->material_file) }}
-                        </p>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 text-sm">Materi Pembelajaran</p>
+                            <p class="text-slate-500 text-sm">
+                                {{ $questionSet->material_original_name ?? basename($questionSet->material_file) }}
+                            </p>
+                        </div>
                     </div>
-
                 </div>
-
                 @endif
-                
+
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -328,8 +387,8 @@
                         {{ $question->needsImageUpload() ? 'border-amber-300 bg-amber-50/30' : '' }}">
 
                         <div class="flex items-start justify-between gap-3 mb-3">
-                            <p class="font-bold text-slate-900 text-justify">
-                                {{ $index + 1 }}. {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
+                            <p class="text-slate-900 text-justify">
+                                <strong>{{ $index + 1 }}.</strong> {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
                             </p>
 
                             <form method="POST"
@@ -385,8 +444,8 @@
                         @endif
 
                         <div class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
-                            <p class="text-green-700 font-semibold text-justify">
-                                Jawaban: {!! \App\Services\Document\TextFormatter::toHtml($question->correct_answer) !!}
+                            <p class="text-green-700 text-justify">
+                                <strong>Jawaban:</strong> {!! \App\Services\Document\TextFormatter::toHtml($question->correct_answer) !!}
                             </p>
                         </div>
 
@@ -499,6 +558,15 @@
                     </div>
                 @endforelse
             </div>
+
+            @if($questionSet->source_reference)
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
+                    <h2 class="text-lg font-bold text-slate-900 mb-3">Daftar Pustaka</h2>
+                    <p class="text-slate-700 text-sm leading-relaxed" style="padding-left:1.25rem; text-indent:-1.25rem;">
+                        {{ $questionSet->source_reference }}.
+                    </p>
+                </div>
+            @endif
 
         </div>
     </div>

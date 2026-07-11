@@ -118,24 +118,6 @@ MATERI SUMBER (WAJIB DIGUNAKAN):
 MATERIAL;
         }
 
-        // ── Instruksi anti-hallucination ──────────────────────────────────────
-        $antiHallucination = $hasMaterial
-            ? <<<'ANTI'
-ATURAN KETAT — ANTI HALLUCINATION:
-1. Setiap soal WAJIB dibuat berdasarkan materi sumber di atas.
-2. Jangan menambahkan fakta, angka, nama, atau konsep yang TIDAK ada dalam materi sumber.
-3. Jika informasi tidak cukup dalam materi untuk membuat soal, gunakan hanya yang tersedia.
-4. Setiap soal WAJIB menyertakan field "source_paragraph" berisi kutipan singkat (1-2 kalimat) dari materi sumber yang menjadi dasar soal tersebut.
-5. Jika soal berasal dari deskripsi gambar, isi source_paragraph dengan "[GAMBAR] " diikuti deskripsi singkat bagian gambar yang digunakan.
-ANTI
-            : <<<'ANTI'
-ATURAN KETAT — AKURASI:
-1. Gunakan hanya fakta yang sudah terbukti dan umum diketahui untuk mata pelajaran ini.
-2. Jangan mengarang fakta, angka, atau nama yang tidak pasti kebenarannya.
-3. Jika tidak yakin dengan suatu fakta, pilih topik lain yang lebih pasti.
-4. Isi field "source_paragraph" dengan "Pengetahuan umum [mata pelajaran]" jika tidak ada materi sumber.
-ANTI;
-
         $total = $data['total_questions'];
         $subject = $data['subject'];
         $grade = $data['grade'];
@@ -148,6 +130,49 @@ ANTI;
         $jenjang = self::JENJANG_MAP[$grade] ?? null;
         $currInfo = self::CURRICULUM_MAP[$curriculum] ?? self::CURRICULUM_MAP['merdeka'];
         $assessInfo = self::ASSESSMENT_MAP[$assessment] ?? self::ASSESSMENT_MAP['reguler'];
+        $curriculumName = $currInfo['nama'];
+
+        // ── Instruksi anti-hallucination ──────────────────────────────────────
+        $antiHallucination = $hasMaterial
+            ? <<<'ANTI'
+ATURAN KETAT — ANTI HALLUCINATION:
+1. Setiap soal WAJIB dibuat berdasarkan materi sumber di atas.
+2. Jangan menambahkan fakta, angka, nama, atau konsep yang TIDAK ada dalam materi sumber.
+3. Jika informasi tidak cukup dalam materi untuk membuat soal, gunakan hanya yang tersedia.
+4. Setiap soal WAJIB menyertakan field "source_paragraph" berisi kutipan singkat (1-2 kalimat) dari materi sumber yang menjadi dasar soal tersebut.
+5. Jika soal berasal dari deskripsi gambar, isi source_paragraph dengan "[GAMBAR] " diikuti deskripsi singkat bagian gambar yang digunakan.
+ANTI
+            : <<<ANTI
+ATURAN KETAT — AKURASI:
+1. Gunakan hanya fakta yang sudah terbukti dan umum diketahui untuk mata pelajaran ini.
+2. Jangan mengarang fakta, angka, atau nama yang tidak pasti kebenarannya.
+3. Jika tidak yakin dengan suatu fakta, pilih topik lain yang lebih pasti.
+4. Setiap soal WAJIB menyertakan field "source_paragraph" berisi SATU jenis referensi konkret yang relevan dengan jawaban soal tersebut — boleh berupa nama buku/modul, jurnal ilmiah, artikel/website edukasi, atau video pembelajaran (mis. YouTube) yang kamu yakini benar-benar relevan dan kredibel untuk topik ini.
+5. JANGAN menulis link/URL persis, DOI, atau nomor volume jurnal — kamu tidak bisa memverifikasi apakah itu benar-benar ada, jadi cukup sebutkan NAMA/JUDUL sumbernya saja (mis. "Jurnal Pendidikan Fisika Indonesia — topik Hukum Newton", bukan URL atau tautan buatan).
+6. Kalau benar-benar tidak ada nama sumber spesifik yang kamu yakini, isi dengan format: "Konsep dasar {$subject} tingkat {$grade}" — JANGAN gunakan frasa generik seperti "Pengetahuan umum" tanpa keterangan lebih lanjut.
+ANTI;
+
+        // ── Sumber referensi (level SET soal, bukan per soal) ─────────────────
+        // Beda dengan "source_paragraph" (kutipan per soal dari materi upload),
+        // ini adalah SATU referensi untuk keseluruhan set soal — supaya guru
+        // tahu buku/kurikulum apa yang jadi acuan, bukan cuma "pengetahuan umum".
+        $sourceReferenceSection = $hasMaterial
+            ? <<<SRCREF
+SUMBER REFERENSI (WAJIB, SATU untuk keseluruhan set soal — bukan per soal):
+- Isi field "source_reference" (di level atas JSON, BUKAN di dalam array "questions") dengan: "Materi/dokumen yang diunggah pengguna."
+SRCREF
+            : <<<SRCREF
+SUMBER REFERENSI (WAJIB, SATU untuk keseluruhan set soal — bukan per soal):
+- Isi field "source_reference" (di level atas JSON, BUKAN di dalam array "questions") dengan referensi KONKRET yang relevan dengan topik soal ini. Boleh berupa salah satu jenis berikut, pilih yang paling sesuai:
+  a) Buku teks/buku paket yang lazim dipakai untuk mata pelajaran, kelas, dan kurikulum ini, ATAU acuan kurikulum resmi (mis. Capaian Pembelajaran).
+  b) Jurnal ilmiah atau artikel akademik yang relevan dengan topik.
+  c) Ebook atau modul pembelajaran daring yang kredibel (mis. dari platform edukasi yang dikenal).
+  d) Artikel/situs web edukasi yang kredibel (mis. ensiklopedia pendidikan, situs kementerian, dsb.).
+  e) Video pembelajaran (mis. channel YouTube edukasi) yang relevan dengan topik.
+- JANGAN hanya menulis "pengetahuan umum" atau kalimat generik serupa — sebutkan NAMA/JUDUL sumbernya secara konkret, misalnya: "Buku Paket Biologi Kelas 11 Kurikulum Merdeka (Kemdikbud)", "Jurnal Pendidikan Sains Indonesia — topik Sistem Peredaran Darah", atau "Video pembelajaran YouTube channel edukasi tentang Hukum Newton".
+- JANGAN menulis link/URL, DOI, nomor volume jurnal, atau tautan video secara persis — kamu tidak bisa memastikan itu benar-benar ada. Cukup sebutkan NAMA/JUDUL/JENIS sumbernya saja, biarkan pengguna yang mencarinya sendiri.
+- Kalau benar-benar tidak ada nama sumber spesifik yang kamu yakini kebenarannya, gunakan format seperti: "Konsep dasar {$subject} tingkat {$grade} sesuai {$curriculumName}" (isikan dengan mata pelajaran, kelas, dan kurikulum yang sesungguhnya, JANGAN salin literal template ini).
+SRCREF;
 
         $konteksJenjang = $jenjang
             ? "Siswa berusia {$jenjang['usia']} (jenjang {$jenjang['jenjang']}). "
@@ -183,6 +208,7 @@ Detail:
 - Tingkat kesulitan: {$diff}
 {$bloomSection}
 {$antiHallucination}
+{$sourceReferenceSection}
 {$materialSection}
 
 PANDUAN GAMBAR:
@@ -193,6 +219,7 @@ PANDUAN GAMBAR:
 Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
 
 {
+  "source_reference": "Buku Paket Biologi Kelas 11 Kurikulum Merdeka (Kemdikbud)",
   "questions": [
     {
       "question_text": "...",
@@ -217,6 +244,7 @@ Detail:
 - Tingkat kesulitan: {$diff}
 {$bloomSection}
 {$antiHallucination}
+{$sourceReferenceSection}
 {$materialSection}
 
 PANDUAN GAMBAR:
@@ -227,6 +255,7 @@ PANDUAN GAMBAR:
 Format jawaban wajib berupa JSON valid tanpa markdown, tanpa kode block:
 
 {
+  "source_reference": "Buku Paket Fisika Kelas 10 Kurikulum Merdeka (Kemdikbud)",
   "questions": [
     {
       "question_text": "...",

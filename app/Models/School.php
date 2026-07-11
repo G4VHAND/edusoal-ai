@@ -16,6 +16,7 @@ class School extends Model
         'logo', 'is_active', 'trial_ends_at',
         'headmaster_name', 'headmaster_nip',
         'letterhead_address', 'show_letterhead_on_export',
+        'ai_provider',
     ];
 
     protected $casts = [
@@ -116,5 +117,17 @@ class School extends Model
     public function incrementQuota(): void
     {
         $this->freshActiveSubscription()?->incrementQuota();
+    }
+
+    // ── Provider AI (ditentukan admin sekolah, berlaku untuk semua guru) ────
+
+    /**
+     * Provider AI yang dipakai semua guru di sekolah ini. Kalau admin
+     * sekolah belum pernah mengaturnya, fallback ke default sistem —
+     * supaya generate soal tetap jalan normal tanpa perlu setup dulu.
+     */
+    public function resolvedAiProvider(): string
+    {
+        return $this->ai_provider ?? config('ai.default');
     }
 }

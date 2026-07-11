@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\IndividualUserController;
+use App\Http\Controllers\Admin\SchoolAIProviderController;
 use App\Http\Controllers\Admin\SchoolBankSoalController;
 use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\SchoolLetterheadController;
@@ -185,6 +186,14 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
 
             Route::post('/letterhead', [SchoolLetterheadController::class, 'update'])
                 ->name('letterhead.update');
+
+            // Provider AI Sekolah — hanya school_admin yang boleh menentukan,
+            // berlaku otomatis untuk semua guru di sekolahnya.
+            Route::get('/ai-provider', [SchoolAIProviderController::class, 'edit'])
+                ->name('ai-provider.edit');
+
+            Route::post('/ai-provider', [SchoolAIProviderController::class, 'update'])
+                ->name('ai-provider.update');
         });
     });
 

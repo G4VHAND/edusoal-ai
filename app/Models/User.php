@@ -225,4 +225,31 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->subscriptionPlan?->allow_all_providers ?? false;
     }
+
+    /**
+     * Tentukan provider AI yang SESUNGGUHNYA dipakai untuk generate soal
+     * user ini — jangan pernah percaya begitu saja input dari form,
+     * karena aturan bisnisnya:
+     *
+     * - Guru: provider 100% ditentukan admin sekolah lewat pengaturan
+     *   sekolah (Admin > Provider AI). Apapun yang guru kirim dari form
+     *   diabaikan — guru tidak perlu (dan tidak boleh) memilih sendiri.
+     * - Individual: boleh pilih sendiri HANYA kalau plan-nya mengizinkan
+     *   semua provider (allow_all_providers). Kalau tidak, dipaksa pakai
+     *   default sistem, sama seperti free-tier guru.
+     */
+    public function resolveAiProvider(?string $requested = null): string
+    {
+        if ($this->hasSchool()) {
+            return $this->school->resolvedAiProvider();
+        }
+
+        $supported = \App\Services\AI\AIServiceFactory::supported();
+
+        if ($this->canUseAllProviders() && $requested && in_array($requested, $supported, true)) {
+            return $requested;
+        }
+
+        return config('ai.default');
+    }
 }

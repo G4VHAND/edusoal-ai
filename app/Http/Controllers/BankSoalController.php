@@ -114,9 +114,10 @@ class BankSoalController extends Controller
 
             TextFormatter::applyToContainer(
                 $section,
-                ($index + 1).'. '.$question->question_text,
-                ['bold' => true],
-                $justify
+                $question->question_text,
+                [],
+                $justify,
+                ['text' => ($index + 1).'. ', 'style' => ['bold' => true]]
             );
 
             // Sisipkan gambar jika ada
@@ -156,17 +157,19 @@ class BankSoalController extends Controller
             if ($includeAnswers) {
                 TextFormatter::applyToContainer(
                     $section,
-                    'Jawaban: '.$question->correct_answer,
-                    ['bold' => true, 'color' => '2563EB'],
-                    $justify
+                    $question->correct_answer,
+                    ['color' => '2563EB'],
+                    $justify,
+                    ['text' => 'Jawaban: ', 'style' => ['bold' => true, 'color' => '2563EB']]
                 );
 
                 if (! empty($question->explanation)) {
                     TextFormatter::applyToContainer(
                         $section,
-                        'Pembahasan: '.$question->explanation,
+                        $question->explanation,
                         ['italic' => true, 'color' => '475569'],
-                        $justify
+                        $justify,
+                        ['text' => 'Pembahasan: ', 'style' => ['bold' => true, 'italic' => true, 'color' => '475569']]
                     );
                 }
             }

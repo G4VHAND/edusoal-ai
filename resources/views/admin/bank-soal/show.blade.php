@@ -15,6 +15,21 @@
                         Dibuat oleh: <span class="font-medium text-slate-600">{{ $questionSet->user?->name }}</span>
                         · {{ $questionSet->created_at->format('d M Y') }}
                     </p>
+                    @if($questionSet->source_reference)
+                        <p class="text-slate-400 text-xs mt-2">
+                            <span class="font-semibold text-slate-500">📚 Referensi:</span>
+                            {{ $questionSet->source_reference }}
+                            <a href="https://www.google.com/search?q={{ urlencode($questionSet->source_reference) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="text-blue-600 hover:underline ml-1">(Google)</a>
+                            <a href="https://scholar.google.com/scholar?q={{ urlencode($questionSet->source_reference) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="text-blue-600 hover:underline ml-1">(Scholar)</a>
+                            <a href="https://www.youtube.com/results?search_query={{ urlencode($questionSet->source_reference) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="text-blue-600 hover:underline ml-1">(YouTube)</a>
+                        </p>
+                    @endif
                 </div>
                 <div class="flex gap-2">
                     <span class="px-3 py-1 rounded-full text-sm
@@ -52,27 +67,27 @@
                     @endif
                 @endif
 
-                <p class="font-bold text-slate-900 mb-3">
-                    {{ $index + 1 }}. {{ $question->question_text }}
+                <p class="text-slate-900 mb-3 text-justify">
+                    <strong>{{ $index + 1 }}.</strong> {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
                 </p>
 
                 @if($questionSet->question_type === 'multiple_choice')
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-700">
-                        <div class="bg-slate-50 rounded-lg p-3">A. {{ $question->option_a }}</div>
-                        <div class="bg-slate-50 rounded-lg p-3">B. {{ $question->option_b }}</div>
-                        <div class="bg-slate-50 rounded-lg p-3">C. {{ $question->option_c }}</div>
-                        <div class="bg-slate-50 rounded-lg p-3">D. {{ $question->option_d }}</div>
+                        <div class="bg-slate-50 rounded-lg p-3">A. {!! \App\Services\Document\TextFormatter::toHtml($question->option_a) !!}</div>
+                        <div class="bg-slate-50 rounded-lg p-3">B. {!! \App\Services\Document\TextFormatter::toHtml($question->option_b) !!}</div>
+                        <div class="bg-slate-50 rounded-lg p-3">C. {!! \App\Services\Document\TextFormatter::toHtml($question->option_c) !!}</div>
+                        <div class="bg-slate-50 rounded-lg p-3">D. {!! \App\Services\Document\TextFormatter::toHtml($question->option_d) !!}</div>
                     </div>
                 @endif
 
-                <div class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                <div class="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-justify">
                     <span class="font-semibold text-green-700">Jawaban:</span>
-                    <span class="text-green-700">{{ $question->correct_answer }}</span>
+                    <span class="text-green-700">{!! \App\Services\Document\TextFormatter::toHtml($question->correct_answer) !!}</span>
                 </div>
 
                 @if($question->explanation)
-                    <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-                        <span class="font-semibold">Pembahasan:</span> {{ $question->explanation }}
+                    <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700 text-justify">
+                        <span class="font-semibold">Pembahasan:</span> {!! \App\Services\Document\TextFormatter::toHtml($question->explanation) !!}
                     </div>
                 @endif
             </div>

@@ -104,13 +104,28 @@ class TextFormatter
      * terpisah seperti kalau dipanggil addText() langsung per segmen.
      *
      * @param  array  $paragraphStyle  mis. ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH] untuk rata kiri-kanan (justify)
+     * @param  array|null  $prefix  mis. ['text' => '1. ', 'style' => ['bold' => true]] — label
+     *                              (nomor soal, "Jawaban:", dst.) yang SELALU tebal, ditaruh
+     *                              di baris pertama yang sama, terpisah dari $baseStyle supaya
+     *                              body teks tidak ikut ketebalan kalau memang tidak diminta.
+     *                              Ini penting supaya **bold** dari AI di dalam body tetap
+     *                              terlihat menonjol — kalau seluruh baris dipaksa bold, kata
+     *                              yang ditandai AI jadi tidak beda dari teks sekitarnya.
      */
-    public static function applyToContainer(AbstractContainer $container, ?string $text, array $baseStyle = [], array $paragraphStyle = []): void
+    public static function applyToContainer(AbstractContainer $container, ?string $text, array $baseStyle = [], array $paragraphStyle = [], ?array $prefix = null): void
     {
         $lines = self::parse($text);
 
-        foreach ($lines as $segments) {
+        if (empty($lines) && $prefix !== null) {
+            $lines = [[]];
+        }
+
+        foreach ($lines as $index => $segments) {
             $run = $container->addTextRun($paragraphStyle ?: null);
+
+            if ($index === 0 && $prefix !== null && $prefix['text'] !== '') {
+                $run->addText($prefix['text'], $prefix['style'] ?? ['bold' => true]);
+            }
 
             foreach ($segments as $segment) {
                 if ($segment['text'] === '') {

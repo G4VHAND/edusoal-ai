@@ -335,8 +335,40 @@
                                 @enderror
                             </div>
 
-                            {{-- Provider dipilih otomatis oleh sistem --}}
-                            <input type="hidden" name="ai_provider" value="gemini">
+                            @php
+                                $currentUser = auth()->user();
+                                $canChooseProvider = $currentUser->isIndividual() && $currentUser->canUseAllProviders();
+                            @endphp
+
+                            @if($canChooseProvider)
+                                {{-- Hanya individual dengan plan yang mengizinkan semua provider
+                                     yang bisa memilih sendiri. Guru TIDAK melihat field ini sama
+                                     sekali — provider mereka ditentukan admin sekolah.
+                                     Daftar provider ditarik dari AIServiceFactory::labeled() —
+                                     kalau nanti ada provider baru, otomatis muncul di sini juga. --}}
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-2">
+                                        Provider AI
+                                    </label>
+
+                                    <select name="ai_provider"
+                                            class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        @foreach(\App\Services\AI\AIServiceFactory::labeled() as $key => $info)
+                                            <option value="{{ $key }}" {{ old('ai_provider', 'gemini') == $key ? 'selected' : '' }}>
+                                                {{ $info['label'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        {{ \App\Services\AI\AIServiceFactory::labeled()[old('ai_provider', 'gemini')]['description'] ?? '' }}
+                                    </p>
+
+                                    @error('ai_provider')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
                         </div>
 
                         <div class="flex flex-wrap gap-3 mt-8">

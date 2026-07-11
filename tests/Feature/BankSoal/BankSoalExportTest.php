@@ -87,6 +87,11 @@ class BankSoalExportTest extends TestCase
         $response->assertSee('<strong>rumus luas persegi</strong>', false);
         // Penanda mentah '**' tidak boleh bocor ke tampilan.
         $response->assertDontSee('**rumus luas persegi**');
+        // Nomor soal tetap tebal...
+        $response->assertSee('<strong>1.</strong>', false);
+        // ...tapi paragraf soal TIDAK lagi dipaksa tebal semua (supaya kata
+        // yang ditandai AI benar-benar menonjol, bukan tenggelam).
+        $response->assertDontSee('class="font-bold text-slate-900 text-justify"', false);
     }
 
     public function test_export_pdf_renders_bold_marker_as_html_strong(): void
