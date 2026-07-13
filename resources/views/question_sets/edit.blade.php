@@ -12,12 +12,24 @@
                 </a>
 
                 <h1 class="text-3xl font-bold text-slate-900">
-                    Edit Bank Soal
+                    Generate Ulang
                 </h1>
 
                 <p class="text-slate-500 mt-2">
-                    Perbarui informasi bank soal seperti judul, mata pelajaran, kelas, topik, jenis soal, dan tingkat kesulitan.
+                    Ubah parameter bank soal (mata pelajaran, kelas, topik, jenis soal, tingkat kesulitan, jumlah
+                    soal), lalu AI akan generate soal baru sesuai perubahan tersebut.
                 </p>
+
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    <p class="text-blue-800 text-sm">
+                        Cuma mau perbaiki teks soal, jawaban, atau pembahasan yang kurang akurat (tanpa panggil AI
+                        lagi)? Kembali ke halaman detail, lalu klik ikon pensil di soal yang mau diperbaiki.
+                    </p>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -251,7 +263,7 @@
                         <button
                             type="submit"
                             class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm">
-                            Simpan Perubahan
+                            Simpan &amp; Generate Ulang
                         </button>
 
                         <a href="{{ route('bank-soal.show', $questionSet->id) }}"

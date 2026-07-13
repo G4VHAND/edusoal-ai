@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Question;
 use App\Models\QuestionSet;
+use App\Policies\QuestionPolicy;
 use App\Policies\QuestionSetPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -21,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Policy
         Gate::policy(QuestionSet::class, QuestionSetPolicy::class);
+        Gate::policy(Question::class, QuestionPolicy::class);
 
         // Rate limiter untuk generate soal
         // Limit dapat dikonfigurasi via GENERATE_RATE_LIMIT di .env

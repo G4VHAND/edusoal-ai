@@ -25,8 +25,11 @@
 
                         <div class="flex flex-wrap items-center gap-3">
 
-                            {{-- Edit --}}
+                            {{-- Generate Ulang (dulu bernama "Edit") — ubah parameter & panggil AI
+                                 lagi. Untuk perbaikan teks langsung tanpa AI, pakai ikon pensil
+                                 di masing-masing soal. --}}
                             <a href="{{ route('bank-soal.edit', $questionSet->id) }}"
+                                title="Ubah parameter (mapel, kelas, jumlah soal, dst.) dan generate ulang lewat AI"
                                 class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
 
                                     <svg class="w-5 h-5"
@@ -34,11 +37,12 @@
                                         stroke="currentColor"
                                         stroke-width="2"
                                         viewBox="0 0 24 24">
-                                        <path d="M12 20h9"/>
-                                        <path d="M16.5 3.5a2.1 2.1 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                        <path d="M23 4v6h-6"/>
+                                        <path d="M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                                     </svg>
 
-                                    Edit
+                                    Generate Ulang
                             </a>
 
                             {{-- Hapus --}}
@@ -391,17 +395,68 @@
                                 <strong>{{ $index + 1 }}.</strong> {!! \App\Services\Document\TextFormatter::toHtml($question->question_text) !!}
                             </p>
 
-                            <form method="POST"
-                                  action="{{ route('bank-soal.question.destroy', [$questionSet->id, $question->id]) }}"
-                                  class="shrink-0">
-                                @csrf @method('DELETE')
-                                <button type="submit"
-                                        onclick="return confirm('Hapus soal nomor {{ $index + 1 }} ini? Tidak bisa dikembalikan.')"
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a href="{{ route('questions.edit', $question->id) }}"
+                                   title="Edit soal ini"
+                                   class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </a>
+
+                                <button type="button"
                                         title="Hapus soal ini"
-                                        class="text-slate-300 hover:text-red-500 transition text-lg leading-none px-1">
-                                    &times;
+                                        x-data=""
+                                        x-on:click="$dispatch('open-modal', 'confirm-delete-question-{{ $question->id }}')"
+                                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M3 6h18"/>
+                                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>
+                                        <path d="M10 11v6M14 11v6"/>
+                                    </svg>
                                 </button>
-                            </form>
+
+                                <x-modal name="confirm-delete-question-{{ $question->id }}" focusable>
+                                    <div class="p-6">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-11 h-11 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M3 6h18"/>
+                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>
+                                                    <path d="M10 11v6M14 11v6"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 class="text-lg font-bold text-slate-900">
+                                                    Hapus soal nomor {{ $index + 1 }}?
+                                                </h2>
+                                                <p class="text-slate-500 text-sm mt-1">
+                                                    Tindakan ini tidak bisa dibatalkan. Soal beserta jawaban dan
+                                                    pembahasannya akan dihapus permanen.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-6 flex justify-end gap-3">
+                                            <button type="button"
+                                                    x-on:click="$dispatch('close')"
+                                                    class="px-5 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition">
+                                                Batal
+                                            </button>
+
+                                            <form method="POST"
+                                                  action="{{ route('bank-soal.question.destroy', [$questionSet->id, $question->id]) }}">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                        class="px-5 py-2.5 rounded-xl font-semibold bg-red-600 text-white hover:bg-red-700 transition">
+                                                    Ya, Hapus Soal
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </x-modal>
+                            </div>
                         </div>
 
                         {{-- Gambar jika sudah diupload --}}

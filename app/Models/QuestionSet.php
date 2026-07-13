@@ -21,6 +21,7 @@ class QuestionSet extends Model
         'assessment_type',
         'total_questions',
         'ai_result',
+        'source_reference',
         'is_ai_generated',
         'ai_provider',
         'ai_model',

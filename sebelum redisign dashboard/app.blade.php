@@ -300,46 +300,5 @@
         </div>
 
     </div>
-
-    {{-- Toast notifikasi global — otomatis muncul kalau ada session flash
-         (success/info/error), dipakai di semua halaman termasuk setelah
-         edit/hapus soal. Auto-hilang setelah beberapa detik, bisa ditutup
-         manual juga. --}}
-    @if(session('success') || session('info') || session('error'))
-        <div
-            x-data="{ show: true }"
-            x-init="setTimeout(() => show = false, 4000)"
-            x-show="show"
-            x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="fixed bottom-6 right-6 z-50 max-w-sm w-full"
-        >
-            @php
-                $toastType = session('success') ? 'success' : (session('error') ? 'error' : 'info');
-                $toastMessage = session('success') ?? session('error') ?? session('info');
-                $toastStyle = [
-                    'success' => ['bg' => 'bg-green-600', 'icon' => 'M5 13l4 4L19 7'],
-                    'error' => ['bg' => 'bg-red-600', 'icon' => 'M6 18L18 6M6 6l12 12'],
-                    'info' => ['bg' => 'bg-blue-600', 'icon' => 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ][$toastType];
-            @endphp
-            <div class="{{ $toastStyle['bg'] }} text-white rounded-xl shadow-lg p-4 flex items-start gap-3">
-                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $toastStyle['icon'] }}"/>
-                </svg>
-                <p class="text-sm font-medium flex-1">{{ $toastMessage }}</p>
-                <button @click="show = false" class="flex-shrink-0 text-white/70 hover:text-white">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    @endif
-
 </body>
 </html>

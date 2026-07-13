@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentTemplateController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuestionSetController;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/bank-soal/{questionSet}/export-template', [BankSoalController::class, 'exportWithTemplate'])
         ->name('bank-soal.export-template');
+
+    // Edit manual satu soal (soal/opsi/jawaban/pembahasan) — beda dengan
+    // "Generate Ulang" (question_sets.edit/update) yang memanggil AI lagi.
+    Route::get('/questions/{question}/edit', [QuestionController::class, 'edit'])
+        ->name('questions.edit');
+
+    Route::put('/questions/{question}', [QuestionController::class, 'update'])
+        ->name('questions.update');
 
 });
 
