@@ -233,19 +233,16 @@
                     </p>
                 </div>
 
-                <div class="hidden md:flex items-center gap-3">
-                    @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
-                    <a href="{{ route('generate-soal') }}"
-                       class="bg-blue-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">
-                        Generate Soal
-                    </a>
-                    @else
-                    <a href="{{ route('admin.dashboard') }}"
-                       class="bg-violet-600 text-white px-3.5 py-2 rounded-lg text-sm font-semibold hover:bg-violet-700">
-                        Admin Panel
-                    </a>
-                    @endif
-                </div>
+                <a href="{{ route('profile.edit') }}"
+                   class="hidden md:flex items-center gap-2.5 pl-2 pr-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">
+                    <span class="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </span>
+                    <span class="text-left leading-tight">
+                        <span class="block text-sm font-semibold text-slate-800">{{ Auth::user()->name }}</span>
+                        <span class="block text-xs text-slate-500">Lihat Profil</span>
+                    </span>
+                </a>
 
             </header>
 
