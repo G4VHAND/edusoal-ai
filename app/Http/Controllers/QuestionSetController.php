@@ -8,6 +8,7 @@ use App\Jobs\AddQuestionsJob;
 use App\Jobs\GenerateQuestionsJob;
 use App\Models\Question;
 use App\Models\QuestionSet;
+use App\Services\Audit\AuditLogService;
 use App\Services\Material\MaterialReaderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -63,6 +64,17 @@ class QuestionSetController extends Controller
             'material_original_name' => $materialOriginalName,
             'material_image' => $materialImage,
         ]);
+
+        AuditLogService::log(
+            module: 'Bank Soal',
+            event: 'create',
+            description: "Membuat bank soal '{$questionSet->title}'",
+            properties: [
+                'question_set_id' => $questionSet->id,
+                'subject' => $questionSet->subject,
+                'grade' => $questionSet->grade,
+            ]
+        );
 
         GenerateQuestionsJob::dispatch($questionSet->id, [
             'subject' => $validated['subject'],
@@ -133,6 +145,15 @@ class QuestionSetController extends Controller
             'status' => $additional > 0 ? 'processing' : $questionSet->status,
         ]);
 
+        AuditLogService::log(
+            module: 'Bank Soal',
+            event: 'update',
+            description: "Mengubah bank soal '{$questionSet->title}'",
+            properties: [
+                'question_set_id' => $questionSet->id,
+            ]
+        );
+
         if ($additional > 0) {
             AddQuestionsJob::dispatch($questionSet->id, $additional);
 
@@ -155,6 +176,15 @@ class QuestionSetController extends Controller
         }
 
         $questionSet->delete();
+
+        AuditLogService::log(
+            module: 'Bank Soal',
+            event: 'delete',
+            description: "Menghapus bank soal '{$questionSet->title}'",
+            properties: [
+                'question_set_id' => $questionSet->id,
+            ]
+        );
 
         return redirect()
             ->route('bank-soal')
@@ -192,6 +222,16 @@ class QuestionSetController extends Controller
             'image_path' => $request->file('image')->store('question-images', 'local'),
         ]);
 
+        AuditLogService::log(
+            module: 'Soal',
+            event: 'upload_image',
+            description: 'Mengunggah gambar soal',
+            properties: [
+                'question_id' => $question->id,
+                'question_set_id' => $questionSet->id,
+            ]
+        );
+
         return back()->with('success', 'Gambar berhasil diupload.');
     }
 
@@ -220,6 +260,16 @@ class QuestionSetController extends Controller
 
         $question->delete();
 
+        AuditLogService::log(
+            module: 'Soal',
+            event: 'delete',
+            description: 'Menghapus satu soal',
+            properties: [
+                'question_id' => $question->id,
+                'question_set_id' => $questionSet->id,
+            ]
+        );
+
         $questionSet->update([
             'total_questions' => $questionSet->questions()->count(),
         ]);
@@ -238,6 +288,16 @@ class QuestionSetController extends Controller
         if ($question->image_path) {
             Storage::disk('local')->delete($question->image_path);
             $question->update(['image_path' => null]);
+
+            AuditLogService::log(
+                module: 'Soal',
+                event: 'delete_image',
+                description: 'Menghapus gambar soal',
+                properties: [
+                    'question_id' => $question->id,
+                    'question_set_id' => $questionSet->id,
+                ]
+            );
         }
 
         return back()->with('success', 'Gambar berhasil dihapus.');
