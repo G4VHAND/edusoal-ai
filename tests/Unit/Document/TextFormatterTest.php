@@ -151,7 +151,9 @@ class TextFormatterTest extends TestCase
         $paragraph = $section->getElements()[0];
         $elements = $paragraph->getElements();
 
-        // 1 elemen prefix ("1. ") + 2 elemen body (biasa + bold)
-        $this->assertCount(3, $elements);
+        // 1 elemen prefix ("1. ") + 3 elemen body: "Soal biasa dengan "
+        // (biasa) + "kata penting" (bold) + "." (biasa lagi, karena titik
+        // di luar tanda **...** jadi segmen tersendiri).
+        $this->assertCount(4, $elements);
     }
 }

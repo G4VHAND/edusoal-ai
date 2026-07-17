@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="min-h-screen bg-slate-50">
-        <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
             <div class="mb-8">
                 <a href="{{ route('dashboard') }}"
@@ -11,7 +11,7 @@
                     Kembali ke Dashboard
                 </a>
 
-                <h1 class="text-3xl font-bold text-slate-900">
+                <h1 class="text-2xl font-bold text-slate-900">
                     Generate Soal
                 </h1>
 
@@ -66,11 +66,17 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                     <form method="POST" action="{{ route('generate-soal.store') }}" enctype="multipart/form-data" onsubmit="showGenerateLoading()">
                         @csrf
+
+                        {{-- ── Bagian 1: Informasi Dasar ──────────────────────────── --}}
+                        <div class="flex items-center gap-2.5 mb-5">
+                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <h2 class="font-bold text-slate-900">Informasi Dasar</h2>
+                        </div>
 
                         <div class="mb-5">
                             <label class="block font-semibold text-slate-700 mb-2">
@@ -161,10 +167,20 @@
                             @enderror
                         </div>
 
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <div class="flex items-center gap-2.5 mb-1">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                                <h2 class="font-bold text-slate-900">Sumber Materi</h2>
+                                <span class="text-xs font-normal text-slate-400">(Opsional)</span>
+                            </div>
+                            <p class="text-sm text-slate-500 mb-4 ml-8">
+                                Kosongkan kalau ingin AI generate soal langsung dari topik di atas.
+                            </p>
+                        </div>
+
                         <div class="mt-5">
                             <label class="block font-semibold text-slate-700 mb-2">
                                 Upload Materi Pembelajaran
-                                <span class="text-slate-400 font-normal">(Opsional)</span>
                             </label>
 
                             <div class="border-2 border-dashed border-slate-300 rounded-2xl p-5 bg-slate-50">
@@ -188,7 +204,7 @@
                         <div class="mt-4">
                             <label class="block font-semibold text-slate-700 mb-2">
                                 Upload Gambar / Diagram
-                                <span class="text-slate-400 font-normal">(Opsional — khusus Gemini)</span>
+                                <span class="text-slate-400 font-normal">(Khusus Gemini)</span>
                             </label>
 
                             <div class="border-2 border-dashed border-blue-200 rounded-2xl p-5 bg-blue-50">
@@ -216,7 +232,14 @@
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <div class="flex items-center gap-2.5 mb-5">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                                <h2 class="font-bold text-slate-900">Pengaturan Soal</h2>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-2">
@@ -249,18 +272,19 @@
                                     name="difficulty"
                                     class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="mudah" {{ old('difficulty') == 'mudah' ? 'selected' : '' }}>
-                                        Mudah — C1/C2 · Mengingat & Memahami
+                                        Mudah (C1–C2)
                                     </option>
                                     <option value="sedang" {{ old('difficulty', 'sedang') == 'sedang' ? 'selected' : '' }}>
-                                        Sedang — C3/C4 · Mengaplikasikan & Menganalisis
+                                        Sedang (C3–C4)
                                     </option>
                                     <option value="sulit" {{ old('difficulty') == 'sulit' ? 'selected' : '' }}>
-                                        Sulit — C5/C6 · Mengevaluasi & Mencipta
+                                        Sulit (C5–C6)
                                     </option>
                                 </select>
 
                                 <p class="text-xs text-slate-400 mt-1">
-                                    Kesulitan disesuaikan otomatis dengan jenjang kelas yang dipilih.
+                                    Mudah: mengingat & memahami · Sedang: mengaplikasikan & menganalisis ·
+                                    Sulit: mengevaluasi & mencipta. Disesuaikan otomatis dengan jenjang kelas.
                                 </p>
 
                                 @error('difficulty')
@@ -393,7 +417,7 @@
                     </form>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 h-fit">
 
                     {{-- Quota indicator --}}
                     @php
@@ -457,22 +481,22 @@
                     <div class="space-y-3 text-sm text-slate-600">
                         <div class="flex gap-2">
                             <span class="font-bold text-blue-600">1.</span>
-                            <p>Tentukan mata pelajaran dan kelas.</p>
+                            <p>Isi <strong>Informasi Dasar</strong> — judul, mata pelajaran, kelas, dan topik spesifik.</p>
                         </div>
 
                         <div class="flex gap-2">
                             <span class="font-bold text-blue-600">2.</span>
-                            <p>Masukkan topik pembelajaran secara spesifik.</p>
+                            <p><strong>Sumber Materi</strong> bersifat opsional — upload kalau ingin soal berdasarkan dokumen/gambar tertentu.</p>
                         </div>
 
                         <div class="flex gap-2">
                             <span class="font-bold text-blue-600">3.</span>
-                            <p>Pilih jenis soal dan tingkat kesulitan.</p>
+                            <p>Atur <strong>Pengaturan Soal</strong> — jenis, kesulitan, kurikulum, dan jumlah soal.</p>
                         </div>
 
                         <div class="flex gap-2">
                             <span class="font-bold text-blue-600">4.</span>
-                            <p>Data akan tersimpan ke Bank Soal.</p>
+                            <p>Klik Generate — soal otomatis tersimpan ke Bank Soal.</p>
                         </div>
                     </div>
                 </div>

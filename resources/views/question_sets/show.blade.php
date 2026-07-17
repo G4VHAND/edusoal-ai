@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="min-h-screen bg-slate-50">
-        <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
             <div class="mb-6">
                 <a href="{{ route('bank-soal') }}"
@@ -11,10 +11,10 @@
                     Kembali ke Bank Soal
                 </a>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                     <div class="flex flex-wrap justify-between items-start gap-4">
                         <div>
-                            <h1 class="text-3xl font-bold text-slate-900">
+                            <h1 class="text-2xl font-bold text-slate-900">
                                 {{ $questionSet->title }}
                             </h1>
 
@@ -30,7 +30,7 @@
                                  di masing-masing soal. --}}
                             <a href="{{ route('bank-soal.edit', $questionSet->id) }}"
                                 title="Ubah parameter (mapel, kelas, jumlah soal, dst.) dan generate ulang lewat AI"
-                                class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
+                                class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm">
 
                                     <svg class="w-5 h-5"
                                         fill="none"
@@ -54,7 +54,7 @@
                                 @method('DELETE')
 
                                 <button type="submit"
-                                        class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
+                                        class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm">
 
                                     <svg class="w-5 h-5"
                                         fill="none"
@@ -77,7 +77,7 @@
 
                                 <button type="button"
                                         @click="open = !open"
-                                        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
+                                        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm">
 
                                     <svg class="w-5 h-5"
                                         fill="none"
@@ -355,7 +355,7 @@
 
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 @if($questionSet->ai_error)
 
                 <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6">
@@ -371,7 +371,7 @@
                 @endif
                 <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-900">
+                        <h2 class="text-lg font-bold text-slate-900">
                             Daftar Pertanyaan
                         </h2>
                         <p class="text-slate-500 text-sm">
@@ -467,34 +467,72 @@
                                      class="max-h-56 rounded-xl border border-slate-200 object-contain bg-white">
                                 <div class="flex items-center gap-2 mt-2">
                                     <span class="text-xs text-green-600 font-medium">✅ Gambar terpasang</span>
-                                    <form method="POST"
-                                          action="{{ route('bank-soal.question.image.delete', [$questionSet->id, $question->id]) }}"
-                                          class="inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                                onclick="return confirm('Hapus gambar ini?')"
-                                                class="text-xs text-red-500 hover:underline">
-                                            Hapus gambar
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            x-data=""
+                                            x-on:click="$dispatch('open-modal', 'confirm-delete-image-{{ $question->id }}')"
+                                            class="text-xs text-red-500 hover:underline">
+                                        Hapus gambar
+                                    </button>
                                 </div>
+
+                                <x-modal name="confirm-delete-image-{{ $question->id }}" focusable>
+                                    <div class="p-6">
+                                        <div class="flex items-start gap-4">
+                                            <div class="w-11 h-11 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M3 6h18"/>
+                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/>
+                                                    <path d="M10 11v6M14 11v6"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 class="text-lg font-bold text-slate-900">
+                                                    Hapus gambar soal nomor {{ $index + 1 }}?
+                                                </h2>
+                                                <p class="text-slate-500 text-sm mt-1">
+                                                    Gambar yang sudah diupload untuk soal ini akan dihapus permanen.
+                                                    Soal itu sendiri tidak akan terhapus.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-6 flex justify-end gap-3">
+                                            <button type="button"
+                                                    x-on:click="$dispatch('close')"
+                                                    class="px-5 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition">
+                                                Batal
+                                            </button>
+
+                                            <form method="POST"
+                                                  action="{{ route('bank-soal.question.image.delete', [$questionSet->id, $question->id]) }}">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                        class="px-5 py-2.5 rounded-xl font-semibold bg-red-600 text-white hover:bg-red-700 transition">
+                                                    Ya, Hapus Gambar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </x-modal>
                             </div>
                         @endif
 
                         @if($questionSet->question_type === 'multiple_choice')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    A. {!! \App\Services\Document\TextFormatter::toHtml($question->option_a) !!}
-                                </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    B. {!! \App\Services\Document\TextFormatter::toHtml($question->option_b) !!}
-                                </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    C. {!! \App\Services\Document\TextFormatter::toHtml($question->option_c) !!}
-                                </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                    D. {!! \App\Services\Document\TextFormatter::toHtml($question->option_d) !!}
-                                </div>
+                                @foreach(['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d'] as $letter => $field)
+                                    @php $isCorrect = trim(strtoupper($question->correct_answer)) === $letter; @endphp
+                                    <div class="rounded-lg p-3 border flex items-start gap-2
+                                        {{ $isCorrect ? 'bg-green-50 border-green-300' : 'bg-slate-50 border-slate-200' }}">
+                                        <span class="flex-1">
+                                            {{ $letter }}. {!! \App\Services\Document\TextFormatter::toHtml($question->$field) !!}
+                                        </span>
+                                        @if($isCorrect)
+                                            <svg class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                                <path d="M20 6L9 17l-5-5"/>
+                                            </svg>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
 
@@ -613,15 +651,6 @@
                     </div>
                 @endforelse
             </div>
-
-            @if($questionSet->source_reference)
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
-                    <h2 class="text-lg font-bold text-slate-900 mb-3">Daftar Pustaka</h2>
-                    <p class="text-slate-700 text-sm leading-relaxed" style="padding-left:1.25rem; text-indent:-1.25rem;">
-                        {{ $questionSet->source_reference }}.
-                    </p>
-                </div>
-            @endif
 
         </div>
     </div>

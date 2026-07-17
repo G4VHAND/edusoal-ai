@@ -1,10 +1,10 @@
 <x-app-layout>
     <div class="min-h-screen bg-slate-50">
-        <div class="w-full px-6 lg:px-8 py-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
             <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-900">Bank Soal</h1>
+                    <h1 class="text-2xl font-bold text-slate-900">Bank Soal</h1>
                     <p class="text-slate-500 mt-2">Kelola semua bank soal yang sudah dibuat.</p>
                 </div>
 
@@ -68,12 +68,12 @@
             </div>
 
             @if($questionSets->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                     @foreach($questionSets as $item)
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-5">
                             <div class="flex items-start justify-between gap-4 mb-5">
-                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                                         <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>
                                     </svg>
@@ -150,13 +150,24 @@
                                 </a>
 
                                 <a href="{{ route('bank-soal.edit', $item->id) }}"
-                                   class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">
-                                    Edit
+                                   title="Generate Ulang — ubah parameter dan panggil AI lagi"
+                                   class="inline-flex items-center justify-center w-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M23 4v6h-6"/>
+                                        <path d="M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
                                 </a>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+                @if($questionSets->hasPages())
+                    <div class="mt-6">
+                        {{ $questionSets->onEachSide(1)->links() }}
+                    </div>
+                @endif
             @else
                 <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
                     <h3 class="text-xl font-bold text-slate-900 mb-2">

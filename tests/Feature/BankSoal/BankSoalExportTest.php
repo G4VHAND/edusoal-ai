@@ -110,4 +110,45 @@ class BankSoalExportTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
     }
+// ── Poin #1: rapikan detail soal ─────────────────────────────────────────
+
+    public function test_correct_option_is_visually_highlighted_in_options_grid(): void
+    {
+        $user = $this->makeUser();
+        $questionSet = $this->makeQuestionSet($user);
+        Question::create([
+            'question_set_id' => $questionSet->id,
+            'question_text' => 'Pertanyaan uji.',
+            'option_a' => 'Opsi A', 'option_b' => 'Opsi B', 'option_c' => 'Opsi C', 'option_d' => 'Opsi D',
+            'correct_answer' => 'C',
+        ]);
+
+        $response = $this->actingAs($user)->get("/bank-soal/{$questionSet->id}");
+
+        $response->assertOk();
+        // Opsi C harus dapat kelas highlight hijau, opsi lain tidak.
+        $response->assertSee('bg-green-50 border-green-300', false);
+    }
+
+    public function test_detail_page_no_longer_shows_duplicate_daftar_pustaka_section(): void
+    {
+        $user = $this->makeUser();
+        $questionSet = $this->makeQuestionSet($user, [
+            'source_reference' => 'Buku Paket Matematika Kelas 9 Kurikulum Merdeka',
+        ]);
+        Question::create([
+            'question_set_id' => $questionSet->id,
+            'question_text' => 'Pertanyaan uji.',
+            'option_a' => 'A', 'option_b' => 'B', 'option_c' => 'C', 'option_d' => 'D',
+            'correct_answer' => 'A',
+        ]);
+
+        $response = $this->actingAs($user)->get("/bank-soal/{$questionSet->id}");
+
+        $response->assertOk();
+        // Referensi tetap muncul SATU KALI (di kartu "Referensi Utama"),
+        // section "Daftar Pustaka" yang duplikat di bawah sudah dihapus.
+        $response->assertDontSee('Daftar Pustaka');
+        $response->assertSee('Referensi Utama');
+    }
 }
