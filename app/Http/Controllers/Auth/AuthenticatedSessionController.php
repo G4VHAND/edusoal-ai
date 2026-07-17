@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,12 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
+        AuditLogService::log(
+            module: 'Authentication',
+            event: 'login',
+            description: "{$user->name} berhasil login",
+        );
+
         // Redirect ke admin panel jika super_admin atau school_admin
         if ($user->isSuperAdmin() || $user->isSchoolAdmin()) {
             return redirect()->intended(route('admin.dashboard'));
@@ -43,6 +50,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Log SEBELUM logout — setelah Auth::logout() dipanggil,
+        // Auth::user() sudah null dan AuditLogService tidak akan tahu
+        // siapa yang logout.
+        if ($user = Auth::user()) {
+            AuditLogService::log(
+                module: 'Authentication',
+                event: 'logout',
+                description: "{$user->name} logout dari sistem",
+            );
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

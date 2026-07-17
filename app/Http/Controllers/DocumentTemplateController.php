@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentTemplate;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -67,7 +68,7 @@ class DocumentTemplateController extends Controller
                 ->update(['is_default' => false]);
         }
 
-        DocumentTemplate::create([
+        $template = DocumentTemplate::create([
             'school_id' => $user->isSchoolAdmin() ? $user->school_id : null,
             'user_id' => $user->isSchoolAdmin() ? null : $user->id,
             'name' => $request->name,
@@ -76,6 +77,17 @@ class DocumentTemplateController extends Controller
             'type' => $request->type,
             'is_default' => $isDefault,
         ]);
+
+        AuditLogService::log(
+            module: 'Template Dokumen',
+            event: 'create',
+            description: "Membuat template dokumen '{$template->name}'",
+            properties: [
+                'template_id' => $template->id,
+                'type' => $template->type,
+                'is_default' => $isDefault,
+            ]
+        );
 
         return redirect()
             ->route('templates.index')
@@ -93,6 +105,14 @@ class DocumentTemplateController extends Controller
         abort_unless($owns, 403);
 
         Storage::disk('local')->delete($template->file_path);
+
+        AuditLogService::log(
+            module: 'Template Dokumen',
+            event: 'delete',
+            description: "Menghapus template dokumen '{$template->name}'",
+            properties: ['template_id' => $template->id, 'type' => $template->type]
+        );
+
         $template->delete();
 
         return back()->with('success', 'Template berhasil dihapus.');
@@ -115,6 +135,13 @@ class DocumentTemplateController extends Controller
             ->update(['is_default' => false]);
 
         $template->update(['is_default' => true]);
+
+        AuditLogService::log(
+            module: 'Template Dokumen',
+            event: 'set_default',
+            description: "Menjadikan template '{$template->name}' sebagai default",
+            properties: ['template_id' => $template->id, 'type' => $template->type]
+        );
 
         return back()->with('success', "Template \"{$template->name}\" diset sebagai default.");
     }

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\QuestionSet;
 use App\Services\AI\QuestionGenerationService;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -26,6 +27,11 @@ class GenerateQuestionsJob implements ShouldQueue
     public function handle(QuestionGenerationService $service): void
     {
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
+
+        // Job berjalan di proses queue worker — TIDAK ada Auth::user(),
+        // jadi user_id/school_id harus dikirim manual ke AuditLogService.
+        $userId = $questionSet->user_id;
+        $schoolId = $questionSet->user?->school_id;
 
         // Skip image upload jika fallback ke Groq (Groq tidak support Vision)
         $hasImage = ! empty($this->data['material_image']);
@@ -53,6 +59,19 @@ class GenerateQuestionsJob implements ShouldQueue
                 'is_ai_generated' => false,
                 'ai_error' => $e->getMessage() ?: 'Semua provider AI gagal merespons.',
             ]);
+
+            AuditLogService::log(
+                module: 'AI',
+                event: 'failed',
+                description: "Generate soal gagal untuk bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'provider' => $this->data['ai_provider'] ?? null,
+                    'error' => $e->getMessage(),
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
 
             throw $e;
         }
@@ -86,12 +105,41 @@ class GenerateQuestionsJob implements ShouldQueue
             $questionSet->user?->incrementQuota();
             $service->clearDashboardCache($questionSet->user_id);
 
+            $generatedCount = count($decoded['questions']);
+
+            AuditLogService::log(
+                module: 'AI',
+                event: 'finish',
+                description: "AI berhasil membuat {$generatedCount} soal untuk bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'model' => $aiResponse['model'] ?? null,
+                    'total_questions' => $generatedCount,
+                    'used_fallback' => $usedFallback,
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
+
         } catch (\Exception $e) {
             $questionSet->update([
                 'status' => 'failed',
                 'is_ai_generated' => false,
                 'ai_error' => $e->getMessage(),
             ]);
+
+            AuditLogService::log(
+                module: 'AI',
+                event: 'failed',
+                description: "Generate soal gagal untuk bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'provider' => $this->data['ai_provider'] ?? null,
+                    'error' => $e->getMessage(),
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
 
             throw $e;
         }

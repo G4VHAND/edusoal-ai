@@ -76,6 +76,22 @@ class QuestionSetController extends Controller
             ]
         );
 
+        // Dicatat terpisah dari log "create" di atas — supaya kalau AI-nya
+        // gagal (lihat GenerateQuestionsJob), riwayat ini tetap menunjukkan
+        // generate memang benar-benar sempat mulai jalan dengan parameter apa.
+        AuditLogService::log(
+            module: 'AI',
+            event: 'generate',
+            description: 'Generate soal menggunakan '.ucfirst($provider),
+            properties: [
+                'question_set_id' => $questionSet->id,
+                'provider' => $provider,
+                'total_questions' => $validated['total_questions'],
+                'curriculum' => $validated['curriculum'],
+                'assessment_type' => $validated['assessment_type'],
+            ]
+        );
+
         GenerateQuestionsJob::dispatch($questionSet->id, [
             'subject' => $validated['subject'],
             'grade' => $validated['grade'],
@@ -129,6 +145,15 @@ class QuestionSetController extends Controller
                 ]);
         }
 
+        // Field yang relevan buat riwayat — sengaja tidak termasuk kolom AI
+        // internal (ai_prompt, ai_result, dll) karena itu bukan sesuatu yang
+        // "diubah" user secara sadar lewat form ini.
+        $trackedFields = [
+            'title', 'subject', 'grade', 'topic', 'question_type',
+            'difficulty', 'curriculum', 'assessment_type', 'total_questions',
+        ];
+        $before = $questionSet->only($trackedFields);
+
         $questionSet->update([
             'title' => $validated['title'],
             'subject' => $validated['subject'],
@@ -145,12 +170,17 @@ class QuestionSetController extends Controller
             'status' => $additional > 0 ? 'processing' : $questionSet->status,
         ]);
 
+        $changes = AuditLogService::diff($before, $questionSet->only($trackedFields));
+
         AuditLogService::log(
             module: 'Bank Soal',
             event: 'update',
-            description: "Mengubah bank soal '{$questionSet->title}'",
+            description: $changes
+                ? "Mengubah bank soal '{$questionSet->title}': ".implode(', ', array_keys($changes))
+                : "Mengubah bank soal '{$questionSet->title}' (tidak ada perubahan data)",
             properties: [
                 'question_set_id' => $questionSet->id,
+                'changes' => $changes,
             ]
         );
 
@@ -175,15 +205,24 @@ class QuestionSetController extends Controller
             Storage::disk('local')->delete($questionSet->material_file);
         }
 
+        // Snapshot sebelum dihapus — setelah delete(), data ini sudah
+        // tidak bisa dilihat lagi di tabel question_sets (kecuali soft
+        // delete belum di-purge), jadi audit log jadi satu-satunya jejak.
+        $snapshot = [
+            'question_set_id' => $questionSet->id,
+            'title' => $questionSet->title,
+            'subject' => $questionSet->subject,
+            'grade' => $questionSet->grade,
+            'total_questions' => $questionSet->total_questions,
+        ];
+
         $questionSet->delete();
 
         AuditLogService::log(
             module: 'Bank Soal',
             event: 'delete',
-            description: "Menghapus bank soal '{$questionSet->title}'",
-            properties: [
-                'question_set_id' => $questionSet->id,
-            ]
+            description: "Menghapus bank soal '{$snapshot['title']}'",
+            properties: $snapshot
         );
 
         return redirect()
@@ -222,13 +261,18 @@ class QuestionSetController extends Controller
             'image_path' => $request->file('image')->store('question-images', 'local'),
         ]);
 
+        // Nomor urut soal dalam bank soal ini — sama seperti nomor yang
+        // dilihat guru di halaman show (urutan berdasar id ascending).
+        $questionNumber = $questionSet->questions()->where('id', '<=', $question->id)->count();
+
         AuditLogService::log(
             module: 'Soal',
             event: 'upload_image',
-            description: 'Mengunggah gambar soal',
+            description: "Mengunggah gambar pada soal nomor {$questionNumber}",
             properties: [
                 'question_id' => $question->id,
                 'question_set_id' => $questionSet->id,
+                'question_number' => $questionNumber,
             ]
         );
 
@@ -258,15 +302,20 @@ class QuestionSetController extends Controller
             Storage::disk('local')->delete($question->image_path);
         }
 
+        // Hitung nomor urutnya SEBELUM dihapus — setelah delete() soal ini
+        // tidak lagi terhitung di antara sibling-nya.
+        $questionNumber = $questionSet->questions()->where('id', '<=', $question->id)->count();
+
         $question->delete();
 
         AuditLogService::log(
             module: 'Soal',
             event: 'delete',
-            description: 'Menghapus satu soal',
+            description: "Menghapus soal nomor {$questionNumber} dari bank soal '{$questionSet->title}'",
             properties: [
                 'question_id' => $question->id,
                 'question_set_id' => $questionSet->id,
+                'question_number' => $questionNumber,
             ]
         );
 
@@ -289,13 +338,16 @@ class QuestionSetController extends Controller
             Storage::disk('local')->delete($question->image_path);
             $question->update(['image_path' => null]);
 
+            $questionNumber = $questionSet->questions()->where('id', '<=', $question->id)->count();
+
             AuditLogService::log(
                 module: 'Soal',
                 event: 'delete_image',
-                description: 'Menghapus gambar soal',
+                description: "Menghapus gambar soal nomor {$questionNumber}",
                 properties: [
                     'question_id' => $question->id,
                     'question_set_id' => $questionSet->id,
+                    'question_number' => $questionNumber,
                 ]
             );
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DocumentTemplate;
 use App\Models\QuestionSet;
+use App\Services\Audit\AuditLogService;
 use App\Services\Document\TemplateExportService;
 use App\Services\Document\TextFormatter;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -54,6 +55,13 @@ class BankSoalController extends Controller
         $pdf = Pdf::loadView('bank-soal.export-pdf', compact('questionSet'))
             ->setPaper('A4', 'portrait');
 
+        AuditLogService::log(
+            module: 'Export',
+            event: 'pdf',
+            description: "Download PDF Guru '{$questionSet->title}'",
+            properties: ['question_set_id' => $questionSet->id]
+        );
+
         return $pdf->download($questionSet->title.'.pdf');
     }
 
@@ -66,6 +74,13 @@ class BankSoalController extends Controller
         $pdf = Pdf::loadView('bank-soal.export-student-pdf', compact('questionSet'))
             ->setPaper('A4', 'portrait');
 
+        AuditLogService::log(
+            module: 'Export',
+            event: 'pdf',
+            description: "Download PDF Siswa '{$questionSet->title}'",
+            properties: ['question_set_id' => $questionSet->id]
+        );
+
         return $pdf->download($questionSet->title.' - Soal Siswa.pdf');
     }
 
@@ -77,6 +92,13 @@ class BankSoalController extends Controller
 
         $tempFile = $this->buildPlainWord($questionSet, includeAnswers: false);
         $fileName = $questionSet->title.'-Soal.docx';
+
+        AuditLogService::log(
+            module: 'Export',
+            event: 'word',
+            description: "Download Word Siswa '{$questionSet->title}'",
+            properties: ['question_set_id' => $questionSet->id]
+        );
 
         return response()
             ->download($tempFile, $fileName)
@@ -257,6 +279,13 @@ class BankSoalController extends Controller
             $tempFile = $this->buildPlainWord($questionSet, includeAnswers: $type === 'guru');
             $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
 
+            AuditLogService::log(
+                module: 'Export',
+                event: 'word',
+                description: "Download Word ".ucfirst($type)." '{$questionSet->title}' (format standar)",
+                properties: ['question_set_id' => $questionSet->id, 'template_id' => null]
+            );
+
             return response()
                 ->download($tempFile, $fileName)
                 ->deleteFileAfterSend(true);
@@ -280,12 +309,30 @@ class BankSoalController extends Controller
             $tempFile = $this->buildPlainWord($questionSet, includeAnswers: $type === 'guru');
             $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
 
+            AuditLogService::log(
+                module: 'Export',
+                event: 'word',
+                description: "Download Word ".ucfirst($type)." '{$questionSet->title}' (template gagal, fallback standar)",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'template_id' => $template->id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+
             return response()
                 ->download($tempFile, $fileName)
                 ->deleteFileAfterSend(true);
         }
 
         $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
+
+        AuditLogService::log(
+            module: 'Export',
+            event: 'word',
+            description: "Download Word ".ucfirst($type)." '{$questionSet->title}'",
+            properties: ['question_set_id' => $questionSet->id, 'template_id' => $template->id]
+        );
 
         return response()
             ->download($outputPath, $fileName)

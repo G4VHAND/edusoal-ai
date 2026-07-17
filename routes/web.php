@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\IndividualUserController;
 use App\Http\Controllers\Admin\SchoolAIProviderController;
 use App\Http\Controllers\Admin\SchoolBankSoalController;
@@ -123,6 +124,11 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
 
         Route::get('/', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+
+        // Audit Log — super_admin lihat seluruh platform, school_admin
+        // otomatis di-scope ke sekolahnya sendiri (lihat AuditLogController).
+        Route::get('/audit-log', [AuditLogController::class, 'index'])
+            ->name('audit-log.index');
 
         Route::middleware('role:super_admin')->group(function () {
             Route::get('/schools', [SchoolController::class, 'index'])

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\QuestionSet;
 use App\Services\AI\QuestionGenerationService;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -35,6 +36,11 @@ class AddQuestionsJob implements ShouldQueue
     {
         $questionSet = QuestionSet::findOrFail($this->questionSetId);
 
+        // Job berjalan di proses queue worker — TIDAK ada Auth::user(),
+        // jadi user_id/school_id harus dikirim manual ke AuditLogService.
+        $userId = $questionSet->user_id;
+        $schoolId = $questionSet->user?->school_id;
+
         $payload = [
             'subject' => $questionSet->subject,
             'grade' => $questionSet->grade,
@@ -61,6 +67,19 @@ class AddQuestionsJob implements ShouldQueue
                 'total_questions' => $existingCount,
                 'ai_error' => $e->getMessage() ?: 'Semua provider AI gagal merespons saat menambah soal.',
             ]);
+
+            AuditLogService::log(
+                module: 'AI',
+                event: 'failed',
+                description: "Generate soal tambahan gagal untuk bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'additional_count' => $this->additionalCount,
+                    'error' => $e->getMessage(),
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
 
             throw $e;
         }
@@ -97,6 +116,19 @@ class AddQuestionsJob implements ShouldQueue
             $questionSet->user?->incrementQuota();
             $service->clearDashboardCache($questionSet->user_id);
 
+            AuditLogService::log(
+                module: 'AI',
+                event: 'finish',
+                description: "AI berhasil menambahkan {$this->additionalCount} soal ke bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'additional_count' => $this->additionalCount,
+                    'total_questions' => $finalCount,
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
+
         } catch (\Exception $e) {
             // Soal lama tetap aman, hanya gagal menambah yang baru.
             $questionSet->update([
@@ -104,6 +136,19 @@ class AddQuestionsJob implements ShouldQueue
                 'total_questions' => $existingCount,
                 'ai_error' => $e->getMessage(),
             ]);
+
+            AuditLogService::log(
+                module: 'AI',
+                event: 'failed',
+                description: "Generate soal tambahan gagal untuk bank soal '{$questionSet->title}'",
+                properties: [
+                    'question_set_id' => $questionSet->id,
+                    'additional_count' => $this->additionalCount,
+                    'error' => $e->getMessage(),
+                ],
+                userId: $userId,
+                schoolId: $schoolId,
+            );
 
             throw $e;
         }

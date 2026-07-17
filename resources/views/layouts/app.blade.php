@@ -112,6 +112,17 @@
                         Dashboard Admin
                     </a>
 
+                    <a href="{{ route('admin.audit-log.index') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                       {{ request()->routeIs('admin.audit-log*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6M9 16h6M9 8h6"/>
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Audit Log
+                    </a>
+
                     @if(auth()->user()->isSuperAdmin())
                     <a href="{{ route('admin.schools.index') }}"
                        class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
