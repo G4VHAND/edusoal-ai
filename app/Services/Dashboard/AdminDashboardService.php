@@ -1,0 +1,190 @@
+<?php
+
+namespace App\Services\Dashboard;
+
+use App\Models\QuestionSet;
+use App\Models\SchoolSubscription;
+use App\Models\User;
+
+/**
+ * Hitung widget & data chart untuk dashboard super admin (analytics
+ * platform-wide). Terpisah dari DashboardService (yang menghitung
+ * dashboard PERSONAL guru/individual) karena skop datanya beda total:
+ * di sini semua query sengaja TIDAK di-filter per user.
+ *
+ * Catatan definisi (dikonfirmasi ke pembimbing/product owner):
+ * - "Guru Aktif"          = guru yang generate soal 30 hari terakhir,
+ *                           BUKAN status login (tidak ada tracking login).
+ * - "Rata-rata Waktu Generate" = PERKIRAAN dari (updated_at - created_at)
+ *                           soal berstatus 'completed'. Ini termasuk waktu
+ *                           antri di queue, bukan murni waktu respons AI —
+ *                           harus tetap dilabeli "perkiraan" di UI.
+ * - "Kuota Terpakai Bulan Ini" = total generate (termasuk aksi "tambah
+ *                           soal") lewat SchoolSubscription::quota_used
+ *                           (guru, dikumpulkan per sekolah) + User::
+ *                           quota_used_this_month (individual). Sengaja
+ *                           BUKAN hitung baris QuestionSet, karena "tambah
+ *                           soal" pada bank soal yang sudah ada tidak
+ *                           membuat baris baru tapi tetap konsumsi quota.
+ */
+class AdminDashboardService
+{
+    private const ACTIVE_TEACHER_WINDOW_DAYS = 30;
+
+    private const DAILY_CHART_DAYS = 14;
+
+    private const MONTHLY_CHART_MONTHS = 6;
+
+    private const MONTH_NAMES = [
+        1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+        7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+    ];
+
+    public function superAdminOverview(): array
+    {
+        return [
+            'widgets' => $this->widgets(),
+            'dailyGenerateChart' => $this->dailyGenerateChart(),
+            'monthlyGenerateChart' => $this->monthlyCounts(QuestionSet::query()),
+            'userGrowthChart' => $this->monthlyCounts(User::query()),
+            'providerChart' => $this->providerChart(),
+            'questionTypeChart' => $this->questionTypeChart(),
+        ];
+    }
+
+    private function widgets(): array
+    {
+        $topProvider = QuestionSet::whereNotNull('ai_provider')
+            ->selectRaw('ai_provider, COUNT(*) as total')
+            ->groupBy('ai_provider')
+            ->orderByDesc('total')
+            ->first();
+
+        return [
+            'generate_today' => QuestionSet::whereDate('created_at', now()->toDateString())->count(),
+            'generate_this_month' => QuestionSet::where('created_at', '>=', now()->startOfMonth())->count(),
+            'active_teachers' => $this->activeTeachers(),
+            'top_provider_label' => $topProvider ? ucfirst($topProvider->ai_provider) : '—',
+            'top_provider_count' => $topProvider->total ?? 0,
+            'avg_generate_label' => $this->averageGenerateLabel(),
+            'quota_used_this_month' => $this->quotaUsedThisMonth(),
+        ];
+    }
+
+    private function activeTeachers(): int
+    {
+        return QuestionSet::where('created_at', '>=', now()->subDays(self::ACTIVE_TEACHER_WINDOW_DAYS))
+            ->whereHas('user', fn ($q) => $q->where('role', 'teacher'))
+            ->distinct()
+            ->count('user_id');
+    }
+
+    /**
+     * Perkiraan rata-rata waktu generate, diformat siap tampil (mis. "2m 15s").
+     * Null (soal completed belum ada) ditampilkan sebagai '—' di widget().
+     */
+    private function averageGenerateLabel(): string
+    {
+        $durations = QuestionSet::where('status', 'completed')
+            ->select('created_at', 'updated_at')
+            ->get()
+            ->map(fn ($qs) => $qs->updated_at->diffInSeconds($qs->created_at));
+
+        if ($durations->isEmpty()) {
+            return '—';
+        }
+
+        $avgSeconds = (int) round($durations->avg());
+
+        return $avgSeconds >= 60
+            ? sprintf('%dm %ds', intdiv($avgSeconds, 60), $avgSeconds % 60)
+            : "{$avgSeconds}s";
+    }
+
+    private function quotaUsedThisMonth(): int
+    {
+        $schoolQuota = SchoolSubscription::whereIn('status', ['active', 'trial'])->sum('quota_used');
+
+        $individualQuota = User::where('role', 'individual')
+            ->whereNull('school_id')
+            ->sum('quota_used_this_month');
+
+        return (int) ($schoolQuota + $individualQuota);
+    }
+
+    /**
+     * Generate per hari, 14 hari terakhir termasuk hari ini.
+     */
+    private function dailyGenerateChart(): array
+    {
+        $from = now()->subDays(self::DAILY_CHART_DAYS - 1)->startOfDay();
+
+        $rows = QuestionSet::where('created_at', '>=', $from)
+            ->select('created_at')
+            ->get()
+            ->groupBy(fn ($qs) => $qs->created_at->toDateString());
+
+        $labels = [];
+        $totals = [];
+
+        for ($i = self::DAILY_CHART_DAYS - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $labels[] = $date->format('d/m');
+            $totals[] = $rows->get($date->toDateString())?->count() ?? 0;
+        }
+
+        return ['labels' => $labels, 'totals' => $totals];
+    }
+
+    /**
+     * Hitung jumlah baris per bulan untuk N bulan terakhir, dipakai baik
+     * untuk chart "Generate / bulan" (query QuestionSet) maupun
+     * "Pertumbuhan Pengguna" (query User). Catatan sama seperti
+     * DashboardService: ekstrak bulan di PHP, bukan groupBy+MONTH() di
+     * SQL, supaya portable ke SQLite (dipakai saat testing).
+     */
+    private function monthlyCounts(\Illuminate\Database\Eloquent\Builder $query): array
+    {
+        $from = now()->subMonths(self::MONTHLY_CHART_MONTHS - 1)->startOfMonth();
+
+        $rows = $query->where('created_at', '>=', $from)
+            ->select('created_at')
+            ->get()
+            ->groupBy(fn ($row) => $row->created_at->format('Y-m'));
+
+        $labels = [];
+        $totals = [];
+
+        for ($i = self::MONTHLY_CHART_MONTHS - 1; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $labels[] = self::MONTH_NAMES[(int) $date->format('n')].' '.$date->format('y');
+            $totals[] = $rows->get($date->format('Y-m'))?->count() ?? 0;
+        }
+
+        return ['labels' => $labels, 'totals' => $totals];
+    }
+
+    private function providerChart(): array
+    {
+        $counts = QuestionSet::whereNotNull('ai_provider')
+            ->selectRaw('ai_provider, COUNT(*) as total')
+            ->groupBy('ai_provider')
+            ->pluck('total', 'ai_provider');
+
+        return [
+            'labels' => $counts->keys()->map(fn ($p) => ucfirst($p))->all(),
+            'totals' => $counts->values()->all(),
+        ];
+    }
+
+    private function questionTypeChart(): array
+    {
+        return [
+            'labels' => ['Pilihan Ganda', 'Essay'],
+            'totals' => [
+                QuestionSet::where('question_type', 'multiple_choice')->count(),
+                QuestionSet::where('question_type', 'essay')->count(),
+            ],
+        ];
+    }
+}

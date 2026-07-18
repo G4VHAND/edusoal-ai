@@ -37,6 +37,51 @@
             @endforeach
         </div>
 
+        {{-- Widget Analytics --}}
+        @if(auth()->user()->isSuperAdmin())
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            @foreach([
+                ['label' => 'Generate Hari Ini',  'value' => $widgets['generate_today']],
+                ['label' => 'Generate Bulan Ini', 'value' => $widgets['generate_this_month']],
+                ['label' => 'Guru Aktif (30 hari)', 'value' => $widgets['active_teachers']],
+                ['label' => 'Provider AI Terbanyak', 'value' => $widgets['top_provider_label'], 'sub' => $widgets['top_provider_count'].' generate'],
+                ['label' => 'Rata-rata Waktu Generate', 'value' => $widgets['avg_generate_label'], 'sub' => 'perkiraan, termasuk antrean'],
+                ['label' => 'Kuota Terpakai Bulan Ini', 'value' => $widgets['quota_used_this_month']],
+            ] as $widget)
+            <div class="bg-white rounded-2xl border border-slate-200 p-4">
+                <p class="text-xs text-slate-500 mb-2">{{ $widget['label'] }}</p>
+                <p class="text-2xl font-bold text-slate-900">{{ $widget['value'] }}</p>
+                @if(isset($widget['sub']))
+                <p class="text-[11px] text-slate-400 mt-1">{{ $widget['sub'] }}</p>
+                @endif
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Chart Analytics --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h2 class="font-bold text-slate-900 mb-4">Generate / Hari (14 hari terakhir)</h2>
+                <div style="height: 220px;"><canvas id="dailyGenerateChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h2 class="font-bold text-slate-900 mb-4">Generate / Bulan (6 bulan terakhir)</h2>
+                <div style="height: 220px;"><canvas id="monthlyGenerateChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h2 class="font-bold text-slate-900 mb-4">Pertumbuhan Pengguna (6 bulan terakhir)</h2>
+                <div style="height: 220px;"><canvas id="userGrowthChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h2 class="font-bold text-slate-900 mb-4">Provider AI &amp; Jenis Soal</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div style="height: 180px;"><canvas id="providerChart"></canvas></div>
+                    <div style="height: 180px;"><canvas id="questionTypeChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
             {{-- Distribusi Paket --}}
@@ -225,4 +270,128 @@
         </div>
 
     </div>
+
+@if(auth()->user()->isSuperAdmin())
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Chart Generate / Hari
+    const dailyCtx = document.getElementById('dailyGenerateChart');
+    if (dailyCtx) {
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: @json($dailyGenerateChart['labels']),
+                datasets: [{
+                    label: 'Generate',
+                    data: @json($dailyGenerateChart['totals']),
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Chart Generate / Bulan
+    const monthlyGenerateCtx = document.getElementById('monthlyGenerateChart');
+    if (monthlyGenerateCtx) {
+        new Chart(monthlyGenerateCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($monthlyGenerateChart['labels']),
+                datasets: [{
+                    label: 'Generate',
+                    data: @json($monthlyGenerateChart['totals']),
+                    backgroundColor: '#2563eb',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Chart Pertumbuhan Pengguna
+    const userGrowthCtx = document.getElementById('userGrowthChart');
+    if (userGrowthCtx) {
+        new Chart(userGrowthCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($userGrowthChart['labels']),
+                datasets: [{
+                    label: 'User Baru',
+                    data: @json($userGrowthChart['totals']),
+                    backgroundColor: '#10B981',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Chart Provider AI
+    const providerCtx = document.getElementById('providerChart');
+    if (providerCtx) {
+        new Chart(providerCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @json($providerChart['labels']),
+                datasets: [{
+                    data: @json($providerChart['totals']),
+                    backgroundColor: ['#3B82F6', '#8B5CF6', '#F59E0B']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+            }
+        });
+    }
+
+    // Chart Jenis Soal
+    const questionTypeCtx = document.getElementById('questionTypeChart');
+    if (questionTypeCtx) {
+        new Chart(questionTypeCtx, {
+            type: 'pie',
+            data: {
+                labels: @json($questionTypeChart['labels']),
+                datasets: [{
+                    data: @json($questionTypeChart['totals']),
+                    backgroundColor: ['#3B82F6', '#8B5CF6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                radius: '85%',
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+            }
+        });
+    }
+
+});
+</script>
+@endif
 </x-app-layout>

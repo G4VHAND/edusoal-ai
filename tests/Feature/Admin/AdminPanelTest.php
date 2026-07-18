@@ -199,6 +199,129 @@ class AdminPanelTest extends TestCase
         ]);
     }
 
+    public function test_creating_school_logs_audit_entry(): void
+    {
+        $admin = $this->makeSuperAdmin();
+        $this->makePlan();
+
+        $this->actingAs($admin)->post('/admin/schools', [
+            'name' => 'SMAN 2 Bandung',
+            'email' => 'sman2@test.com',
+            'level' => 'sma',
+            'plan_slug' => 'free',
+            'admin_name' => 'Admin Sekolah',
+            'admin_email' => 'admin@sman2.com',
+            'admin_password' => 'password123',
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'module' => 'Sekolah',
+            'event' => 'create',
+        ]);
+    }
+
+    public function test_toggling_school_active_status_logs_audit_entry(): void
+    {
+        $admin = $this->makeSuperAdmin();
+        $school = $this->makeSchool();
+
+        $this->actingAs($admin)->patch("/admin/schools/{$school->id}/toggle-active");
+
+        $this->assertDatabaseHas('audit_logs', [
+            'module' => 'Sekolah',
+            'event' => 'toggle_active',
+        ]);
+    }
+
+    public function test_super_admin_can_update_school_subscription(): void
+    {
+        $admin = $this->makeSuperAdmin();
+        $freePlan = $this->makePlan();
+        $premiumPlan = SubscriptionPlan::create([
+            'name' => 'Premium',
+            'slug' => 'premium',
+            'price_monthly' => 150000,
+            'price_yearly' => 1500000,
+            'max_teachers' => 20,
+            'quota_per_month' => 500,
+            'max_questions_per_generate' => 50,
+            'allow_image_upload' => true,
+            'allow_export_word' => true,
+            'allow_export_pdf' => true,
+            'allow_all_providers' => true,
+            'is_active' => true,
+        ]);
+
+        $school = $this->makeSchool();
+        $this->makeSchoolSubscription($school, $freePlan);
+        $schoolAdmin = $this->makeSchoolAdmin($school); // staff sekolah, subscription_plan_id ikut sekolah
+
+        $response = $this->actingAs($admin)->post("/admin/schools/{$school->id}/subscription", [
+            'plan_slug' => 'premium',
+            'billing_cycle' => 'monthly',
+            'duration_months' => 3,
+            'amount_paid' => 450000,
+        ]);
+
+        $response->assertRedirect(route('admin.schools.show', $school));
+
+        // Subscription lama harus expired, subscription baru aktif dengan plan premium
+        $this->assertDatabaseHas('school_subscriptions', [
+            'school_id' => $school->id,
+            'subscription_plan_id' => $freePlan->id,
+            'status' => 'expired',
+        ]);
+        $this->assertDatabaseHas('school_subscriptions', [
+            'school_id' => $school->id,
+            'subscription_plan_id' => $premiumPlan->id,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'amount_paid' => 450000,
+        ]);
+
+        // Semua user di sekolah ikut pindah ke plan baru
+        $this->assertDatabaseHas('users', [
+            'id' => $schoolAdmin->id,
+            'subscription_plan_id' => $premiumPlan->id,
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'module' => 'Sekolah',
+            'event' => 'update_subscription',
+        ]);
+    }
+
+    public function test_super_admin_can_reset_school_quota(): void
+    {
+        $admin = $this->makeSuperAdmin();
+        $plan = $this->makePlan();
+        $school = $this->makeSchool();
+        $this->makeSchoolSubscription($school, $plan);
+
+        $teacher = User::factory()->create([
+            'email_verified_at' => now(),
+            'role' => 'teacher',
+            'school_id' => $school->id,
+            'quota_used_this_month' => 8,
+            'quota_reset_at' => now()->addMonth(),
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->post("/admin/schools/{$school->id}/reset-quota");
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $teacher->id,
+            'quota_used_this_month' => 0,
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'module' => 'Sekolah',
+            'event' => 'reset_quota',
+        ]);
+    }
+
     // ── Teacher Management ────────────────────────────────────────────────────
 
     public function test_super_admin_can_view_teachers_list(): void

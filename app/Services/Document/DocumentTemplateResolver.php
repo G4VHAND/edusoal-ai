@@ -45,12 +45,13 @@ class DocumentTemplateResolver
 
         $schoolId = $questionSet->user?->school_id;
 
-        $owns = $currentUser->isSchoolAdmin()
-            ? $template->school_id === $currentUser->school_id
-            : (
-                $template->user_id === $currentUser->id
-                || ($schoolId && $template->school_id === $schoolId)
-            );
+        // Basis ownership sama dengan DocumentTemplateService (lihat
+        // DocumentTemplate::isOwnedBy()), ditambah 1 pengecualian khusus
+        // export: guru (bukan school_admin, tidak "memiliki" template)
+        // tetap boleh pakai template default SEKOLAHNYA sendiri saat export,
+        // walau dia bukan yang meng-upload template itu.
+        $owns = $template->isOwnedBy($currentUser)
+            || (! $currentUser->isSchoolAdmin() && $schoolId && $template->school_id === $schoolId);
 
         abort_unless($owns, 403, 'Anda tidak memiliki akses ke template ini.');
 

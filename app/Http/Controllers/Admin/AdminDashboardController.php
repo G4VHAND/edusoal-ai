@@ -7,9 +7,14 @@ use App\Models\QuestionSet;
 use App\Models\School;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Services\Dashboard\AdminDashboardService;
 
 class AdminDashboardController extends Controller
 {
+    public function __construct(
+        private readonly AdminDashboardService $analyticsService,
+    ) {}
+
     public function index()
     {
         $user = auth()->user();
@@ -39,7 +44,9 @@ class AdminDashboardController extends Controller
 
         $plans = SubscriptionPlan::withCount('schoolSubscriptions')->get();
 
-        return view('admin.dashboard', compact('stats', 'recentSchools', 'plans'));
+        $analytics = $this->analyticsService->superAdminOverview();
+
+        return view('admin.dashboard', compact('stats', 'recentSchools', 'plans') + $analytics);
     }
 
     /**
