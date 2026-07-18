@@ -42,7 +42,7 @@ class BankSoalExportService
             properties: ['question_set_id' => $questionSet->id]
         );
 
-        return $pdf->download($questionSet->title.'.pdf');
+        return $pdf->download($this->sanitizeFilename($questionSet->title).'.pdf');
     }
 
     public function siswaPdf(QuestionSet $questionSet)
@@ -59,7 +59,7 @@ class BankSoalExportService
             properties: ['question_set_id' => $questionSet->id]
         );
 
-        return $pdf->download($questionSet->title.' - Soal Siswa.pdf');
+        return $pdf->download($this->sanitizeFilename($questionSet->title).' - Soal Siswa.pdf');
     }
 
     public function siswaWord(QuestionSet $questionSet)
@@ -67,7 +67,7 @@ class BankSoalExportService
         $questionSet->load('questions');
 
         $tempFile = $this->plainWordExportService->build($questionSet, includeAnswers: false);
-        $fileName = $questionSet->title.'-Soal.docx';
+        $fileName = $this->sanitizeFilename($questionSet->title).'-Soal.docx';
 
         AuditLogService::log(
             module: 'Export',
@@ -118,7 +118,7 @@ class BankSoalExportService
             return $this->fallbackWord($questionSet, $type, templateId: $template->id, error: $e->getMessage());
         }
 
-        $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
+        $fileName = $this->sanitizeFilename($questionSet->title).' - '.ucfirst($type).'.docx';
 
         AuditLogService::log(
             module: 'Export',
@@ -141,7 +141,7 @@ class BankSoalExportService
     private function fallbackWord(QuestionSet $questionSet, string $type, ?int $templateId, ?string $error = null)
     {
         $tempFile = $this->plainWordExportService->build($questionSet, includeAnswers: $type === 'guru');
-        $fileName = $questionSet->title.' - '.ucfirst($type).'.docx';
+        $fileName = $this->sanitizeFilename($questionSet->title).' - '.ucfirst($type).'.docx';
 
         $suffix = $error
             ? ' (template gagal, fallback standar)'
@@ -163,5 +163,19 @@ class BankSoalExportService
         return response()
             ->download($tempFile, $fileName)
             ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Bersihkan judul bank soal supaya aman dipakai sebagai nama file
+     * download — judul adalah input bebas dari user (tidak divalidasi
+     * karakter khusus saat generate soal), jadi karakter yang bermasalah
+     * untuk nama file/HTTP header (mis. / \ : * ? " < > |) perlu dibuang.
+     */
+    private function sanitizeFilename(string $title): string
+    {
+        $clean = preg_replace('/[\/\\\\:*?"<>|\x00-\x1F]/', '', $title);
+        $clean = trim($clean);
+
+        return $clean !== '' ? $clean : 'Bank Soal';
     }
 }
