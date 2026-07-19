@@ -88,7 +88,10 @@ class AdminDashboardService
         $durations = QuestionSet::where('status', 'completed')
             ->select('created_at', 'updated_at')
             ->get()
-            ->map(fn ($qs) => $qs->updated_at->diffInSeconds($qs->created_at));
+            // abs() eksplisit di sini karena diffInSeconds() TIDAK selalu
+            // mengembalikan nilai absolut tergantung urutan argumen & versi
+            // Carbon — tanpa ini, hasilnya bisa negatif dan merusak avg().
+            ->map(fn ($qs) => abs($qs->updated_at->diffInSeconds($qs->created_at)));
 
         if ($durations->isEmpty()) {
             return '—';

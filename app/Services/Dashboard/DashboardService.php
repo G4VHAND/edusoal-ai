@@ -52,6 +52,7 @@ class DashboardService
             'subjectStats' => $subjectStats,
             'topSubjects' => $subjectStats->take(5),
             'monthlyActivity' => $monthlyActivity,
+            'quotaWidget' => $this->quotaWidget($user),
             'monthlyLabels' => $this->monthlyLabels($monthlyActivity),
             'monthlyTotals' => $monthlyActivity->pluck('total')->values()->all(),
             'period' => $period,
@@ -64,6 +65,39 @@ class DashboardService
      * Semua hasil disimpan sebagai array biasa (bukan Eloquent Collection)
      * supaya aman di-cache (lihat catatan di masing-masing query di bawah).
      */
+    /**
+     * Widget "Quota Sekolah/Personal Bulan Ini" — angka besar adalah SISA
+     * quota (bukan yang terpakai), sesuai desain referensi. Sengaja pakai
+     * User::remainingQuota()/quotaLimit()/hasSchool() alih-alih query
+     * manual ke SchoolSubscription — method-method itu sudah jadi satu
+     * sumber kebenaran untuk logic quota (dipakai juga untuk gating
+     * generate di User::hasQuota()), termasuk kasus plan unlimited
+     * (quota_per_month = -1).
+     */
+    private function quotaWidget(User $user): array
+    {
+        $cacheKey = "dashboard:quota:{$user->id}";
+        $ttl = now()->addMinutes(self::CACHE_TTL_MINUTES);
+
+        return Cache::remember($cacheKey, $ttl, function () use ($user) {
+            $remaining = $user->remainingQuota();
+            $limit = $user->quotaLimit();
+
+            $planName = $user->hasSchool()
+                ? ($user->school?->activeSubscription?->plan?->name ?? 'Belum ada langganan aktif')
+                : ($user->subscriptionPlan?->name ?? 'Free');
+
+            return [
+                'label' => $user->hasSchool() ? 'Quota Sekolah Bulan Ini' : 'Quota Personal Bulan Ini',
+                'value' => $remaining,
+                'limit' => $limit,
+                'unlimited' => $remaining === -1,
+                'pooled' => $user->hasSchool(),
+                'plan_name' => $planName,
+            ];
+        });
+    }
+
     private function fetchCached(int $userId, string $period): array
     {
         $cacheKey = "dashboard:{$userId}:{$period}";
