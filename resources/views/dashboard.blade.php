@@ -61,85 +61,84 @@
                 </div>
             </div>
 
-            {{-- Filter Periode + Widget Ringkas --}}
-            <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('dashboard', ['period' => 'all']) }}"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-medium
-                    {{ $period == 'all' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
-                        Semua Data
-                    </a>
+            {{-- Filter Periode --}}
+            <div class="flex flex-wrap gap-2 mb-4">
+                <a href="{{ route('dashboard', ['period' => 'all']) }}"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-medium
+                {{ $period == 'all' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
+                    Semua Data
+                </a>
 
-                    <a href="{{ route('dashboard', ['period' => '7days']) }}"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-medium
-                    {{ $period == '7days' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
-                        7 Hari
-                    </a>
+                <a href="{{ route('dashboard', ['period' => '7days']) }}"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-medium
+                {{ $period == '7days' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
+                    7 Hari
+                </a>
 
-                    <a href="{{ route('dashboard', ['period' => '30days']) }}"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-medium
-                    {{ $period == '30days' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
-                        30 Hari
-                    </a>
+                <a href="{{ route('dashboard', ['period' => '30days']) }}"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-medium
+                {{ $period == '30days' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
+                    30 Hari
+                </a>
 
-                    <a href="{{ route('dashboard', ['period' => 'year']) }}"
-                    class="px-3.5 py-1.5 rounded-lg text-xs font-medium
-                    {{ $period == 'year' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
-                        Tahun Ini
-                    </a>
+                <a href="{{ route('dashboard', ['period' => 'year']) }}"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-medium
+                {{ $period == 'year' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600' }}">
+                    Tahun Ini
+                </a>
+            </div>
+
+            {{-- Widget Ringkas --}}
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <div class="bg-white border border-slate-200 rounded-2xl p-5">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                        </svg>
+                    </div>
+                    <p class="text-sm text-slate-500 mb-1">Total Bank Soal</p>
+                    <p class="text-3xl font-bold text-slate-900">{{ $totalQuestionSets }}</p>
+                    <p class="text-xs text-emerald-600 font-medium mt-1">Data aktif</p>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 min-w-[190px]">
-                        <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                            </svg>
-                        </div>
-                        <p class="text-sm text-slate-500 mb-1">Total Bank Soal</p>
-                        <p class="text-3xl font-bold text-slate-900">{{ $totalQuestionSets }}</p>
-                        <p class="text-xs text-emerald-600 font-medium mt-1">Data aktif</p>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" />
+                        </svg>
                     </div>
+                    <p class="text-sm text-slate-500 mb-1">Total Pertanyaan</p>
+                    <p class="text-3xl font-bold text-slate-900">{{ $totalQuestions }}</p>
+                </div>
 
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 min-w-[190px]">
-                        <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" />
-                            </svg>
-                        </div>
-                        <p class="text-sm text-slate-500 mb-1">Total Pertanyaan</p>
-                        <p class="text-3xl font-bold text-slate-900">{{ $totalQuestions }}</p>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5">
+                    <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                        </svg>
                     </div>
+                    <p class="text-sm text-slate-500 mb-1">Generate AI</p>
+                    <p class="text-3xl font-bold text-slate-900">{{ $aiGeneratedCount }}</p>
+                </div>
 
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 min-w-[190px]">
-                        <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
-                            </svg>
-                        </div>
-                        <p class="text-sm text-slate-500 mb-1">Generate AI</p>
-                        <p class="text-3xl font-bold text-slate-900">{{ $aiGeneratedCount }}</p>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5">
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
                     </div>
-
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 min-w-[220px]">
-                        <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                        </div>
-                        <p class="text-sm text-slate-500 mb-1">{{ $quotaWidget['label'] }}</p>
-                        <p class="text-3xl font-bold text-slate-900">
-                            {{ $quotaWidget['unlimited'] ? '∞' : $quotaWidget['value'] }}
-                        </p>
-                        <p class="text-xs text-slate-400 mt-1">
-                            {{ $quotaWidget['unlimited'] ? 'Unlimited generate' : 'sisa dari '.$quotaWidget['limit'].' generate' }}
-                        </p>
-                        @if($quotaWidget['pooled'])
-                        <p class="text-xs text-slate-400">Dipakai bersama semua guru di sekolah Anda.</p>
-                        @endif
-                        <div class="border-t border-slate-100 my-3"></div>
-                        <p class="text-xs text-slate-400">Paket: {{ $quotaWidget['plan_name'] }}</p>
-                    </div>
+                    <p class="text-sm text-slate-500 mb-1">{{ $quotaWidget['label'] }}</p>
+                    <p class="text-3xl font-bold text-slate-900">
+                        {{ $quotaWidget['unlimited'] ? '∞' : $quotaWidget['value'] }}
+                    </p>
+                    <p class="text-xs text-slate-400 mt-1">
+                        {{ $quotaWidget['unlimited'] ? 'Unlimited generate' : 'sisa dari '.$quotaWidget['limit'].' generate' }}
+                    </p>
+                    @if($quotaWidget['pooled'])
+                    <p class="text-xs text-slate-400">Dipakai bersama semua guru di sekolah Anda.</p>
+                    @endif
+                    <div class="border-t border-slate-100 my-3"></div>
+                    <p class="text-xs text-slate-400">Paket: {{ $quotaWidget['plan_name'] }}</p>
                 </div>
             </div>
 
