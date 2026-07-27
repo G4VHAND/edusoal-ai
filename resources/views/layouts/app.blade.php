@@ -84,16 +84,53 @@
                     Template Dokumen
                 </a>
                 @endif
+
+                {{-- Roadmap: belum ada halaman/route sungguhan, sementara
+                     diarahkan ke placeholder "segera hadir" supaya sidebar
+                     tetap lengkap tanpa link mati. --}}
+                <a href="{{ route('coming-soon', 'materi-pembelajaran') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 6.04A8.97 8.97 0 0 0 6 3.75c-1.05 0-2.06.18-3 .51v14.25A8.99 8.99 0 0 1 6 18c2.3 0 4.41.87 6 2.29m0-14.25a8.97 8.97 0 0 1 6-2.29c1.05 0 2.06.18 3 .51v14.25A8.99 8.99 0 0 0 18 18a8.97 8.97 0 0 0-6 2.29V6.04Z"/>
+                    </svg>
+                    Materi Pembelajaran
+                </a>
+
+                <a href="{{ route('coming-soon', 'riwayat-generate') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path stroke-linecap="round" d="M12 7v5l3 3"/>
+                    </svg>
+                    Riwayat Generate
+                </a>
+
+                <a href="{{ route('coming-soon', 'kelas-mapel') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m5-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 3a4 4 0 1 0 0-8"/>
+                    </svg>
+                    Kelas &amp; Mapel
+                </a>
                 @endif
 
                 <a href="{{ route('profile.edit') }}"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
                    {{ request()->routeIs('profile.edit') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M20 21a8 8 0 1 0-16 0"/>
-                        <circle cx="12" cy="7" r="4"/>
+                        <path d="M10.3 2.3a1.5 1.5 0 0 1 3.4 0l.2.9a1.5 1.5 0 0 0 2.2 1l.8-.5a1.5 1.5 0 0 1 2.4 1.7l-.4.9a1.5 1.5 0 0 0 1 2.2l.9.2a1.5 1.5 0 0 1 0 2.9l-.9.2a1.5 1.5 0 0 0-1 2.2l.4.9a1.5 1.5 0 0 1-2.4 1.7l-.8-.5a1.5 1.5 0 0 0-2.2 1l-.2.9a1.5 1.5 0 0 1-3.4 0l-.2-.9a1.5 1.5 0 0 0-2.2-1l-.8.5a1.5 1.5 0 0 1-2.4-1.7l.4-.9a1.5 1.5 0 0 0-1-2.2l-.9-.2a1.5 1.5 0 0 1 0-2.9l.9-.2a1.5 1.5 0 0 0 1-2.2l-.4-.9a1.5 1.5 0 0 1 2.4-1.7l.8.5a1.5 1.5 0 0 0 2.2-1l.2-.9Z"/>
+                        <circle cx="12" cy="12" r="3"/>
                     </svg>
-                    Profil
+                    Pengaturan
+                </a>
+
+                <a href="{{ route('coming-soon', 'bantuan') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.7-2.4 3.4M12 17h.01"/>
+                    </svg>
+                    Bantuan
                 </a>
 
                 {{-- Menu Admin Panel — hanya untuk super_admin dan school_admin --}}
@@ -204,6 +241,23 @@
             </nav>
 
             <div class="p-3 border-t border-slate-200">
+                @if(auth()->user()->isTeacher() || auth()->user()->isIndividual())
+                    @php $sidebarQuota = auth()->user()->remainingQuota(); $sidebarLimit = auth()->user()->quotaLimit(); @endphp
+                    <div class="rounded-xl p-3 mb-3 bg-slate-50 border border-slate-100">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-semibold text-slate-500">Quota AI</span>
+                            <span class="text-xs font-bold text-slate-800">
+                                {{ $sidebarLimit === -1 ? 'Unlimited' : $sidebarQuota.' / '.$sidebarLimit }}
+                            </span>
+                        </div>
+                        @if($sidebarLimit !== -1)
+                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: {{ min(100, round(($sidebarQuota / max($sidebarLimit,1)) * 100)) }}%"></div>
+                        </div>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="bg-slate-50 rounded-xl p-3 mb-3">
                     <p class="font-semibold text-slate-900">
                         {{ Auth::user()->name }}
@@ -233,27 +287,35 @@
         <div class="flex-1 lg:pl-64 flex flex-col min-h-screen">
 
             {{-- Topbar --}}
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-5 sticky top-0 z-30">
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-end px-5 sticky top-0 z-30">
 
-                <div>
-                    <h2 class="font-bold text-slate-900 text-sm">
-                        EduSoal AI
-                    </h2>
-                    <p class="text-xs text-slate-500">
-                        Dashboard aplikasi pembuat soal berbasis AI
-                    </p>
+                <div class="flex items-center gap-3">
+                    <button type="button"
+                            class="relative w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
+                        </svg>
+                        @if(($unreadNotifications ?? 0) > 0)
+                        <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            {{ $unreadNotifications }}
+                        </span>
+                        @endif
+                    </button>
+
+                    <a href="{{ route('profile.edit') }}"
+                       class="hidden md:flex items-center gap-2.5 pl-2 pr-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">
+                        <span class="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </span>
+                        <span class="text-left leading-tight">
+                            <span class="block text-sm font-semibold text-slate-800">{{ Auth::user()->name }}</span>
+                            <span class="block text-xs text-slate-500">{{ ucfirst(str_replace('_', ' ', Auth::user()->role)) }}</span>
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </a>
                 </div>
-
-                <a href="{{ route('profile.edit') }}"
-                   class="hidden md:flex items-center gap-2.5 pl-2 pr-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">
-                    <span class="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </span>
-                    <span class="text-left leading-tight">
-                        <span class="block text-sm font-semibold text-slate-800">{{ Auth::user()->name }}</span>
-                        <span class="block text-xs text-slate-500">Lihat Profil</span>
-                    </span>
-                </a>
 
             </header>
 
@@ -276,7 +338,7 @@
                     </a>
                     @endif
                     <a href="{{ route('profile.edit') }}" class="px-3 py-1.5 rounded-lg text-sm font-semibold {{ request()->routeIs('profile.edit') ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700' }}">
-                        Profil
+                        Pengaturan
                     </a>
                 </div>
             </div>
@@ -299,7 +361,7 @@
 
                     <div class="flex items-center gap-5 text-xs text-slate-400">
                         <span>Dibuat dengan ❤️ untuk pendidikan Indonesia</span>
-                        <a href="{{ route('profile.edit') }}" class="hover:text-slate-600 transition">Profil</a>
+                        <a href="{{ route('profile.edit') }}" class="hover:text-slate-600 transition">Pengaturan</a>
                         <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Bantuan</a>
                     </div>
                 </div>

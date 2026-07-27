@@ -25,6 +25,13 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Placeholder untuk menu yang sudah ada di sidebar tapi fiturnya belum
+// dibangun (Materi Pembelajaran, Riwayat Generate, Kelas & Mapel, Bantuan) —
+// supaya sidebar tidak 404, sambil jelas ke user kalau ini masih roadmap.
+Route::get('/segera-hadir/{feature}', function (string $feature) {
+    return view('coming-soon', ['feature' => $feature]);
+})->middleware(['auth', 'verified'])->name('coming-soon');
+
 // ─── Bank Soal ────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
 
