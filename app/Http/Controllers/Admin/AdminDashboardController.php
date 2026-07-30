@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\QuestionSet;
 use App\Models\School;
 use App\Models\SubscriptionPlan;
@@ -46,7 +47,9 @@ class AdminDashboardController extends Controller
 
         $analytics = $this->analyticsService->superAdminOverview();
 
-        return view('admin.dashboard', compact('stats', 'recentSchools', 'plans') + $analytics);
+        $recentAuditLogs = AuditLog::with(['user', 'school'])->latest()->take(6)->get();
+
+        return view('admin.dashboard', compact('stats', 'recentSchools', 'plans', 'recentAuditLogs') + $analytics);
     }
 
     /**
@@ -76,6 +79,10 @@ class AdminDashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.school-dashboard', compact('school', 'stats', 'plan', 'recentTeachers'));
+        $analytics = $this->analyticsService->schoolOverview($school);
+
+        $recentAuditLogs = AuditLog::with('user')->where('school_id', $school->id)->latest()->take(5)->get();
+
+        return view('admin.school-dashboard', compact('school', 'stats', 'plan', 'recentTeachers', 'recentAuditLogs') + $analytics);
     }
 }

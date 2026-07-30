@@ -180,6 +180,30 @@
                         </svg>
                         User Individual
                     </a>
+
+                    <a href="{{ route('coming-soon', 'subscription-platform') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20.25 6.375c0 2.07-3.694 3.75-8.25 3.75S3.75 8.445 3.75 6.375m16.5 0c0-2.07-3.694-3.75-8.25-3.75S3.75 4.305 3.75 6.375m16.5 0v11.25c0 2.07-3.694 3.75-8.25 3.75s-8.25-1.68-8.25-3.75V6.375"/>
+                        </svg>
+                        Subscription
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'ai-provider-platform') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/>
+                        </svg>
+                        AI Provider
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'paket') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/>
+                        </svg>
+                        Paket
+                    </a>
                     @endif
 
                     <a href="{{ route('admin.teachers.index') }}"
@@ -204,6 +228,32 @@
                         </svg>
                         Bank Soal Sekolah
                     </a>
+
+                    @if(auth()->user()->isSuperAdmin())
+                    <a href="{{ route('coming-soon', 'broadcast') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 11l18-5v12L3 14v-3Z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/>
+                        </svg>
+                        Broadcast
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'monitoring') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 12h4l3 8 4-16 3 8h4"/>
+                        </svg>
+                        Monitoring
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'pengaturan-platform') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                        </svg>
+                        Pengaturan Platform
+                    </a>
+                    @endif
 
                     @if(auth()->user()->isSchoolAdmin())
                     <a href="{{ route('admin.letterhead.edit') }}"
@@ -233,6 +283,22 @@
                             <polyline points="14 2 14 8 20 8"/>
                         </svg>
                         Template Dokumen
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'materi-pembelajaran') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 6.04A8.97 8.97 0 0 0 6 3.75c-1.05 0-2.06.18-3 .51v14.25A8.99 8.99 0 0 1 6 18c2.3 0 4.41.87 6 2.29m0-14.25a8.97 8.97 0 0 1 6-2.29c1.05 0 2.06.18 3 .51v14.25A8.99 8.99 0 0 0 18 18a8.97 8.97 0 0 0-6 2.29V6.04Z"/>
+                        </svg>
+                        Materi Pembelajaran
+                    </a>
+
+                    <a href="{{ route('coming-soon', 'subscription-sekolah') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20.25 6.375c0 2.07-3.694 3.75-8.25 3.75S3.75 8.445 3.75 6.375m16.5 0c0-2.07-3.694-3.75-8.25-3.75S3.75 4.305 3.75 6.375m16.5 0v11.25c0 2.07-3.694 3.75-8.25 3.75s-8.25-1.68-8.25-3.75V6.375"/>
+                        </svg>
+                        Subscription
                     </a>
                     @endif
                 </div>

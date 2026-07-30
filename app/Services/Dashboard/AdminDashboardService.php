@@ -47,9 +47,74 @@ class AdminDashboardService
             'dailyGenerateChart' => $this->dailyGenerateChart(),
             'monthlyGenerateChart' => $this->monthlyCounts(QuestionSet::query()),
             'userGrowthChart' => $this->monthlyCounts(User::query()),
+            'schoolGrowthChart' => $this->monthlyCounts(\App\Models\School::query()),
             'providerChart' => $this->providerChart(),
             'questionTypeChart' => $this->questionTypeChart(),
         ];
+    }
+
+    /**
+     * Analytics untuk dashboard SATU sekolah (school_admin). Semua query
+     * di-scope ke $school->id lewat relasi user->school_id — sekolah lain
+     * tidak boleh terlihat sama sekali.
+     */
+    public function schoolOverview(\App\Models\School $school): array
+    {
+        $schoolQuestions = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id));
+
+        return [
+            'generateThisMonth' => (clone $schoolQuestions)->where('created_at', '>=', now()->startOfMonth())->count(),
+            'monthlyGenerateChart' => $this->monthlyCounts((clone $schoolQuestions)),
+            'subjectChart' => $this->schoolSubjectChart($school),
+            'questionTypeChart' => $this->schoolQuestionTypeChart($school),
+            'topTeachers' => $this->schoolTopTeachers($school),
+        ];
+    }
+
+    private function schoolSubjectChart(\App\Models\School $school): array
+    {
+        $counts = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id))
+            ->whereNotNull('subject')
+            ->selectRaw('subject, COUNT(*) as total')
+            ->groupBy('subject')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->pluck('total', 'subject');
+
+        return ['labels' => $counts->keys()->all(), 'totals' => $counts->values()->all()];
+    }
+
+    private function schoolQuestionTypeChart(\App\Models\School $school): array
+    {
+        $base = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id));
+
+        return [
+            'labels' => ['Pilihan Ganda', 'Essay'],
+            'totals' => [
+                (clone $base)->where('question_type', 'multiple_choice')->count(),
+                (clone $base)->where('question_type', 'essay')->count(),
+            ],
+        ];
+    }
+
+    /**
+     * Ranking guru paling aktif (jumlah generate) di sekolah ini, 3 teratas.
+     */
+    private function schoolTopTeachers(\App\Models\School $school): array
+    {
+        $rows = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id)->where('role', 'teacher'))
+            ->selectRaw('user_id, COUNT(*) as total')
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        $names = User::whereIn('id', $rows->pluck('user_id'))->pluck('name', 'id');
+
+        return $rows->map(fn ($row) => [
+            'name' => $names[$row->user_id] ?? '—',
+            'total' => (int) $row->total,
+        ])->all();
     }
 
     private function widgets(): array

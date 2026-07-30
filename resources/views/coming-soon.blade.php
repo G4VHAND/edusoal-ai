@@ -4,6 +4,13 @@
         'riwayat-generate' => ['title' => 'Riwayat Generate', 'desc' => 'Lihat log lengkap semua proses generate soal, termasuk yang gagal atau dibatalkan.'],
         'kelas-mapel' => ['title' => 'Kelas & Mapel', 'desc' => 'Kelola daftar kelas dan mata pelajaran supaya generate soal lebih terstruktur.'],
         'bantuan' => ['title' => 'Bantuan', 'desc' => 'Pusat bantuan, FAQ, dan cara menghubungi tim EduSoal AI.'],
+        'subscription-sekolah' => ['title' => 'Subscription', 'desc' => 'Halaman detail & riwayat langganan sekolah — sementara lihat ringkasannya di dashboard.'],
+        'subscription-platform' => ['title' => 'Subscription', 'desc' => 'Kelola langganan semua sekolah dalam satu halaman — sementara lihat per-sekolah lewat menu Sekolah.'],
+        'ai-provider-platform' => ['title' => 'AI Provider', 'desc' => 'Kelola provider AI (Gemini, Groq, dst) untuk seluruh platform.'],
+        'paket' => ['title' => 'Paket', 'desc' => 'Kelola paket langganan (harga, kuota, fitur) yang tersedia untuk sekolah.'],
+        'broadcast' => ['title' => 'Broadcast', 'desc' => 'Kirim pengumuman ke semua sekolah/guru sekaligus.'],
+        'monitoring' => ['title' => 'Monitoring', 'desc' => 'Pantau kesehatan sistem: status server, antrean job, dan error AI.'],
+        'pengaturan-platform' => ['title' => 'Pengaturan Platform', 'desc' => 'Pengaturan umum platform EduSoal AI.'],
     ];
     $info = $labels[$feature] ?? ['title' => str($feature)->replace('-', ' ')->title(), 'desc' => 'Fitur ini masih dalam pengembangan.'];
 @endphp
