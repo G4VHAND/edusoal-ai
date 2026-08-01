@@ -4,6 +4,8 @@ namespace Tests\Unit\Document;
 
 use App\Services\Document\TextFormatter;
 use PhpOffice\PhpWord\Element\TextRun;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\SimpleType\Jc;
 use Tests\TestCase;
 
 class TextFormatterTest extends TestCase
@@ -89,7 +91,7 @@ class TextFormatterTest extends TestCase
 
     public function test_apply_to_container_keeps_mixed_bold_and_plain_segments_on_one_paragraph(): void
     {
-        $phpWord = new \PhpOffice\PhpWord\PhpWord;
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         TextFormatter::applyToContainer($section, 'Jawaban: **A**');
@@ -105,7 +107,7 @@ class TextFormatterTest extends TestCase
 
     public function test_apply_to_container_creates_one_paragraph_per_line(): void
     {
-        $phpWord = new \PhpOffice\PhpWord\PhpWord;
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         TextFormatter::applyToContainer($section, "Baris satu\nBaris dua\nBaris tiga");
@@ -115,26 +117,26 @@ class TextFormatterTest extends TestCase
 
     public function test_apply_to_container_applies_justify_paragraph_style(): void
     {
-        $phpWord = new \PhpOffice\PhpWord\PhpWord;
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         TextFormatter::applyToContainer(
             $section,
             'Soal yang cukup panjang untuk diratakan kiri-kanan.',
             [],
-            ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH]
+            ['alignment' => Jc::BOTH]
         );
 
         $paragraph = $section->getElements()[0];
         $this->assertEquals(
-            \PhpOffice\PhpWord\SimpleType\Jc::BOTH,
+            Jc::BOTH,
             $paragraph->getParagraphStyle()->getAlignment()
         );
     }
 
     public function test_apply_to_container_prefix_stays_on_same_line_without_forcing_body_bold(): void
     {
-        $phpWord = new \PhpOffice\PhpWord\PhpWord;
+        $phpWord = new PhpWord;
         $section = $phpWord->addSection();
 
         // Nomor soal ("1. ") harus tebal, tapi body-nya TIDAK ikut tebal

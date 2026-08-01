@@ -25,8 +25,8 @@ class DashboardService
 
     /**
      * @return array Data siap pakai untuk view('dashboard', ...) — sudah
-     *                termasuk key 'period' supaya controller tinggal
-     *                return view('dashboard', $this->forUser(...)).
+     *               termasuk key 'period' supaya controller tinggal
+     *               return view('dashboard', $this->forUser(...)).
      */
     public function forUser(User $user, string $period): array
     {

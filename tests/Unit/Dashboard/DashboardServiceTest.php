@@ -9,6 +9,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\Dashboard\DashboardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class DashboardServiceTest extends TestCase
@@ -28,7 +29,7 @@ class DashboardServiceTest extends TestCase
         // auto-increment), jadi cache key berbasis user->id (lihat
         // DashboardService::quotaWidget()) bisa collision kalau tidak
         // di-flush di sini.
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
     }
 
     private function makeUser(): User

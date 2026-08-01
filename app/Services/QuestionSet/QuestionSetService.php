@@ -124,9 +124,9 @@ class QuestionSetService
      * @param  array  $validated  Hasil UpdateQuestionSetRequest::validated()
      * @param  int  $currentCount  Jumlah soal aktual saat ini (dari request->currentQuestionCount())
      * @return array{question_set: QuestionSet, additional: int} Controller pakai 'additional'
-     *         untuk menentukan pesan flash yang tepat.
+     *                                                           untuk menentukan pesan flash yang tepat.
      *
-     * @throws ValidationException  Kalau quota user sudah habis untuk menambah soal.
+     * @throws ValidationException Kalau quota user sudah habis untuk menambah soal.
      */
     public function update(QuestionSet $questionSet, array $validated, int $currentCount): array
     {
@@ -275,7 +275,7 @@ class QuestionSetService
      * total_questions otomatis disesuaikan supaya tetap sinkron dengan
      * jumlah soal aktual yang tersisa.
      *
-     * @throws ValidationException  Kalau ini soal terakhir di bank soal.
+     * @throws ValidationException Kalau ini soal terakhir di bank soal.
      */
     public function destroyQuestion(QuestionSet $questionSet, Question $question): void
     {

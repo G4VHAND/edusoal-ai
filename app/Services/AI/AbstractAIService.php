@@ -171,7 +171,7 @@ ANTI;
         // ini adalah SATU referensi untuk keseluruhan set soal — supaya guru
         // tahu buku/kurikulum apa yang jadi acuan, bukan cuma "pengetahuan umum".
         $sourceReferenceSection = $hasMaterial
-            ? <<<SRCREF
+            ? <<<'SRCREF'
 SUMBER REFERENSI (WAJIB, SATU untuk keseluruhan set soal — bukan per soal):
 - Isi field "source_reference" (di level atas JSON, BUKAN di dalam array "questions") dengan: "Materi/dokumen yang diunggah pengguna."
 SRCREF

@@ -3,8 +3,10 @@
 namespace App\Services\Dashboard;
 
 use App\Models\QuestionSet;
+use App\Models\School;
 use App\Models\SchoolSubscription;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Hitung widget & data chart untuk dashboard super admin (analytics
@@ -47,7 +49,7 @@ class AdminDashboardService
             'dailyGenerateChart' => $this->dailyGenerateChart(),
             'monthlyGenerateChart' => $this->monthlyCounts(QuestionSet::query()),
             'userGrowthChart' => $this->monthlyCounts(User::query()),
-            'schoolGrowthChart' => $this->monthlyCounts(\App\Models\School::query()),
+            'schoolGrowthChart' => $this->monthlyCounts(School::query()),
             'providerChart' => $this->providerChart(),
             'questionTypeChart' => $this->questionTypeChart(),
         ];
@@ -58,7 +60,7 @@ class AdminDashboardService
      * di-scope ke $school->id lewat relasi user->school_id — sekolah lain
      * tidak boleh terlihat sama sekali.
      */
-    public function schoolOverview(\App\Models\School $school): array
+    public function schoolOverview(School $school): array
     {
         $schoolQuestions = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id));
 
@@ -75,7 +77,7 @@ class AdminDashboardService
     /**
      * Feed "Aktivitas Guru Terbaru" — siapa generate apa, kapan.
      */
-    private function schoolRecentActivity(\App\Models\School $school): array
+    private function schoolRecentActivity(School $school): array
     {
         return QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id))
             ->with('user:id,name')
@@ -91,7 +93,7 @@ class AdminDashboardService
             ->all();
     }
 
-    private function schoolSubjectChart(\App\Models\School $school): array
+    private function schoolSubjectChart(School $school): array
     {
         $counts = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id))
             ->whereNotNull('subject')
@@ -104,7 +106,7 @@ class AdminDashboardService
         return ['labels' => $counts->keys()->all(), 'totals' => $counts->values()->all()];
     }
 
-    private function schoolQuestionTypeChart(\App\Models\School $school): array
+    private function schoolQuestionTypeChart(School $school): array
     {
         $base = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id));
 
@@ -120,7 +122,7 @@ class AdminDashboardService
     /**
      * Ranking guru paling aktif (jumlah generate) di sekolah ini, 3 teratas.
      */
-    private function schoolTopTeachers(\App\Models\School $school): array
+    private function schoolTopTeachers(School $school): array
     {
         $rows = QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id)->where('role', 'teacher'))
             ->selectRaw('user_id, COUNT(*) as total')
@@ -231,7 +233,7 @@ class AdminDashboardService
      * DashboardService: ekstrak bulan di PHP, bukan groupBy+MONTH() di
      * SQL, supaya portable ke SQLite (dipakai saat testing).
      */
-    private function monthlyCounts(\Illuminate\Database\Eloquent\Builder $query): array
+    private function monthlyCounts(Builder $query): array
     {
         $base = now()->startOfMonth();
         $from = $base->copy()->subMonths(self::MONTHLY_CHART_MONTHS - 1);

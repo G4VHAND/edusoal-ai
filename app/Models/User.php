@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AI\AIServiceFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -244,7 +245,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->school->resolvedAiProvider();
         }
 
-        $supported = \App\Services\AI\AIServiceFactory::supported();
+        $supported = AIServiceFactory::supported();
 
         if ($this->canUseAllProviders() && $requested && in_array($requested, $supported, true)) {
             return $requested;

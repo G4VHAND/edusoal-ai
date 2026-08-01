@@ -4,6 +4,7 @@ namespace App\Services\Document;
 
 use App\Models\QuestionSet;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 /**
@@ -65,7 +66,7 @@ class TemplateExportService
 
             foreach ($questions as $i => $question) {
                 $num = $i + 1;
-                $justify = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH];
+                $justify = ['alignment' => Jc::BOTH];
 
                 $processor->setValue("nomor#{$num}", (string) $num);
                 $this->safeSetComplexValue($processor, "soal#{$num}", $question->question_text, $justify);

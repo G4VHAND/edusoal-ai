@@ -25,7 +25,7 @@ class AuditLogService
     ): void {
         $user = Auth::user();
 
-        $agent = new Agent();
+        $agent = new Agent;
 
         AuditLog::create([
             'user_id' => $userId ?? $user?->id,

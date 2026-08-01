@@ -5,6 +5,7 @@ namespace Tests\Feature\Jobs;
 use App\Jobs\GenerateQuestionsJob;
 use App\Models\QuestionSet;
 use App\Models\User;
+use App\Services\AI\QuestionGenerationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -89,7 +90,7 @@ class GenerateQuestionsJobSourceReferenceTest extends TestCase
             'question_type' => 'multiple_choice',
             'difficulty' => 'sedang',
             'total_questions' => 1,
-        ]))->handle(app(\App\Services\AI\QuestionGenerationService::class));
+        ]))->handle(app(QuestionGenerationService::class));
 
         $questionSet->refresh();
 
@@ -140,7 +141,7 @@ class GenerateQuestionsJobSourceReferenceTest extends TestCase
             'question_type' => 'multiple_choice',
             'difficulty' => 'sedang',
             'total_questions' => 1,
-        ]))->handle(app(\App\Services\AI\QuestionGenerationService::class));
+        ]))->handle(app(QuestionGenerationService::class));
 
         $questionSet->refresh();
 
@@ -191,7 +192,7 @@ class GenerateQuestionsJobSourceReferenceTest extends TestCase
             'question_type' => 'essay',
             'difficulty' => 'sedang',
             'total_questions' => 1,
-        ]))->handle(app(\App\Services\AI\QuestionGenerationService::class));
+        ]))->handle(app(QuestionGenerationService::class));
 
         $questionSet->refresh();
 

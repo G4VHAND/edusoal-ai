@@ -186,7 +186,7 @@ class QuestionEditTest extends TestCase
 
         $this->assertEquals('Ada spasi di pinggir', $question->fresh()->question_text);
     }
-// ── UI: tombol jelas & popup konfirmasi/notifikasi ──────────────────────
+    // ── UI: tombol jelas & popup konfirmasi/notifikasi ──────────────────────
 
     public function test_update_redirect_carries_success_flash_message(): void
     {

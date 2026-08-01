@@ -110,7 +110,7 @@ class BankSoalExportTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
     }
-// ── Poin #1: rapikan detail soal ─────────────────────────────────────────
+    // ── Poin #1: rapikan detail soal ─────────────────────────────────────────
 
     public function test_correct_option_is_visually_highlighted_in_options_grid(): void
     {

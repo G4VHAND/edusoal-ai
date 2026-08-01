@@ -261,13 +261,13 @@ class SchoolQuotaTest extends TestCase
 
     public function test_expired_subscription_has_no_quota_even_if_status_still_active(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $plan = $this->makePlan(['quota_per_month' => 100]);
         $school = $this->makeSchool();
 
         // Status masih 'active' — persis kondisi sebelum diperbaiki, kalau
         // tidak ada apapun yang pernah flip status-nya.
         $this->makeSubscription($school, $plan, [
-            'status'  => 'active',
+            'status' => 'active',
             'ends_at' => now()->subDay(), // sudah lewat kemarin
         ]);
 
@@ -278,11 +278,11 @@ class SchoolQuotaTest extends TestCase
 
     public function test_expired_trial_has_no_quota_even_if_status_still_trial(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $plan = $this->makePlan(['quota_per_month' => 10]);
         $school = $this->makeSchool();
 
         $this->makeSubscription($school, $plan, [
-            'status'  => 'trial',
+            'status' => 'trial',
             'ends_at' => now()->subDays(3),
         ]);
 
@@ -291,10 +291,10 @@ class SchoolQuotaTest extends TestCase
 
     public function test_teacher_blocked_from_generating_when_school_subscription_expired(): void
     {
-        $plan   = $this->makePlan(['quota_per_month' => 100]);
+        $plan = $this->makePlan(['quota_per_month' => 100]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, [
-            'status'  => 'active',
+            'status' => 'active',
             'ends_at' => now()->subDay(),
         ]);
 
@@ -306,10 +306,10 @@ class SchoolQuotaTest extends TestCase
     public function test_subscription_ending_today_still_counts_as_active(): void
     {
         // Boundary case — jangan sampai terlalu agresif motong di hari H.
-        $plan   = $this->makePlan(['quota_per_month' => 10]);
+        $plan = $this->makePlan(['quota_per_month' => 10]);
         $school = $this->makeSchool();
         $this->makeSubscription($school, $plan, [
-            'status'  => 'active',
+            'status' => 'active',
             'ends_at' => now()->endOfDay(),
         ]);
 
@@ -323,8 +323,8 @@ class SchoolQuotaTest extends TestCase
         $plan = $this->makePlan();
 
         $expiredActive = $this->makeSubscriptionRaw($plan, ['status' => 'active', 'ends_at' => now()->subDays(5)]);
-        $expiredTrial  = $this->makeSubscriptionRaw($plan, ['status' => 'trial', 'ends_at' => now()->subDay()]);
-        $stillValid    = $this->makeSubscriptionRaw($plan, ['status' => 'active', 'ends_at' => now()->addMonth()]);
+        $expiredTrial = $this->makeSubscriptionRaw($plan, ['status' => 'trial', 'ends_at' => now()->subDay()]);
+        $stillValid = $this->makeSubscriptionRaw($plan, ['status' => 'active', 'ends_at' => now()->addMonth()]);
         $alreadyMarked = $this->makeSubscriptionRaw($plan, ['status' => 'expired', 'ends_at' => now()->subMonth()]);
 
         $this->artisan('subscriptions:expire')->assertSuccessful();

@@ -123,7 +123,7 @@ class BankSoalExportService
         AuditLogService::log(
             module: 'Export',
             event: 'word',
-            description: "Download Word ".ucfirst($type)." '{$questionSet->title}'",
+            description: 'Download Word '.ucfirst($type)." '{$questionSet->title}'",
             properties: ['question_set_id' => $questionSet->id, 'template_id' => $template->id]
         );
 
@@ -156,7 +156,7 @@ class BankSoalExportService
         AuditLogService::log(
             module: 'Export',
             event: 'word',
-            description: "Download Word ".ucfirst($type)." '{$questionSet->title}'".$suffix,
+            description: 'Download Word '.ucfirst($type)." '{$questionSet->title}'".$suffix,
             properties: $properties
         );
 
