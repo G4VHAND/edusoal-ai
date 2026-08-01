@@ -68,7 +68,27 @@ class AdminDashboardService
             'subjectChart' => $this->schoolSubjectChart($school),
             'questionTypeChart' => $this->schoolQuestionTypeChart($school),
             'topTeachers' => $this->schoolTopTeachers($school),
+            'recentActivity' => $this->schoolRecentActivity($school),
         ];
+    }
+
+    /**
+     * Feed "Aktivitas Guru Terbaru" — siapa generate apa, kapan.
+     */
+    private function schoolRecentActivity(\App\Models\School $school): array
+    {
+        return QuestionSet::whereHas('user', fn ($q) => $q->where('school_id', $school->id))
+            ->with('user:id,name')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn ($qs) => [
+                'teacher' => $qs->user->name ?? '—',
+                'subject' => $qs->subject,
+                'total_questions' => $qs->total_questions,
+                'created_at' => $qs->created_at,
+            ])
+            ->all();
     }
 
     private function schoolSubjectChart(\App\Models\School $school): array
@@ -213,7 +233,8 @@ class AdminDashboardService
      */
     private function monthlyCounts(\Illuminate\Database\Eloquent\Builder $query): array
     {
-        $from = now()->subMonths(self::MONTHLY_CHART_MONTHS - 1)->startOfMonth();
+        $base = now()->startOfMonth();
+        $from = $base->copy()->subMonths(self::MONTHLY_CHART_MONTHS - 1);
 
         $rows = $query->where('created_at', '>=', $from)
             ->select('created_at')
@@ -224,7 +245,7 @@ class AdminDashboardService
         $totals = [];
 
         for ($i = self::MONTHLY_CHART_MONTHS - 1; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
+            $date = $base->copy()->subMonths($i);
             $labels[] = self::MONTH_NAMES[(int) $date->format('n')].' '.$date->format('y');
             $totals[] = $rows->get($date->format('Y-m'))?->count() ?? 0;
         }

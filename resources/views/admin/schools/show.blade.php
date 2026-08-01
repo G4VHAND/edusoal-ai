@@ -28,8 +28,8 @@
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">
                     <p class="text-sm text-slate-500">Paket</p>
-                    <p class="font-semibold text-slate-800 mt-1">
-                        {{ $school->activeSubscription?->plan?->name ?? 'Trial' }}
+                    <p class="font-semibold mt-1 {{ $school->activeSubscription?->plan ? 'text-slate-800' : 'text-red-600' }}">
+                        {{ $school->activeSubscription?->plan?->name ?? 'Tidak Ada' }}
                     </p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4">

@@ -40,8 +40,9 @@
                         <td class="px-6 py-4 text-slate-600">{{ $school->city ?? '-' }}</td>
                         <td class="px-6 py-4 text-slate-600">{{ $school->users_count }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-2 py-1 bg-violet-100 text-violet-700 rounded-full text-xs">
-                                {{ $school->activeSubscription?->plan?->name ?? 'Trial' }}
+                            @php $planName = $school->activeSubscription?->plan?->name; @endphp
+                            <span class="px-2 py-1 rounded-full text-xs {{ $planName ? 'bg-violet-100 text-violet-700' : 'bg-red-100 text-red-700' }}">
+                                {{ $planName ?? 'Tidak Ada' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
