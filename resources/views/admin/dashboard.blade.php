@@ -198,7 +198,7 @@
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-[0_2px_10px_-2px_rgba(15,23,42,0.08)] ring-1 ring-slate-100 p-5 h-[300px] flex flex-col">
-                            <h3 class="text-sm font-bold text-slate-900 shrink-0">Distribusi Paket Sekolah</h3>
+                            <h3 class="text-sm font-bold text-slate-900 shrink-0">Distribusi Paket Langganan</h3>
                             <p class="text-xs text-slate-500 mb-2 shrink-0">Sekolah per paket langganan.</p>
                             @if($totalSubs === 0)
                                 <div class="flex-1 flex items-center justify-center text-xs text-slate-400">Belum ada data</div>
