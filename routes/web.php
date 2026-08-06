@@ -11,10 +11,13 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentTemplateController;
+use App\Http\Controllers\KelasMapelController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LearningMaterialController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuestionSetController;
+use App\Http\Controllers\RiwayatGenerateController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public ───────────────────────────────────────────────────────────────────
@@ -32,11 +35,19 @@ Route::get('/segera-hadir/{feature}', function (string $feature) {
     return view('coming-soon', ['feature' => $feature]);
 })->middleware(['auth', 'verified'])->name('coming-soon');
 
+// Bantuan bisa diakses semua role (guru, individual, admin sekolah, super admin).
+Route::view('/bantuan', 'bantuan.index')
+    ->middleware(['auth', 'verified'])
+    ->name('bantuan');
+
 // ─── Bank Soal ────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/bank-soal', [BankSoalController::class, 'index'])
         ->name('bank-soal');
+
+    Route::get('/riwayat-generate', [RiwayatGenerateController::class, 'index'])
+        ->name('riwayat-generate');
 
     Route::get('/bank-soal/{questionSet}', [QuestionSetController::class, 'show'])
         ->name('bank-soal.show');
@@ -110,6 +121,31 @@ Route::middleware(['auth', 'verified', 'role:school_admin,individual'])->group(f
 
     Route::patch('/templates/{template}/set-default', [DocumentTemplateController::class, 'setDefault'])
         ->name('templates.set-default');
+});
+
+// ─── Materi Pembelajaran ───────────────────────────────────────────────────────
+// Guru & individual: upload materi pribadi. School admin: bisa upload materi
+// pribadi ATAU materi sekolah (dibagikan ke semua guru di sekolahnya).
+// Visibility diatur di LearningMaterial::scopeVisibleTo(), bukan di sini.
+Route::middleware(['auth', 'verified', 'role:teacher,individual,school_admin'])->group(function () {
+
+    Route::get('/materi-pembelajaran', [LearningMaterialController::class, 'index'])
+        ->name('materi-pembelajaran.index');
+
+    Route::get('/materi-pembelajaran/create', [LearningMaterialController::class, 'create'])
+        ->name('materi-pembelajaran.create');
+
+    Route::post('/materi-pembelajaran', [LearningMaterialController::class, 'store'])
+        ->name('materi-pembelajaran.store');
+
+    Route::get('/materi-pembelajaran/{material}/download', [LearningMaterialController::class, 'download'])
+        ->name('materi-pembelajaran.download');
+
+    Route::delete('/materi-pembelajaran/{material}', [LearningMaterialController::class, 'destroy'])
+        ->name('materi-pembelajaran.destroy');
+
+    Route::get('/kelas-mapel', [KelasMapelController::class, 'index'])
+        ->name('kelas-mapel.index');
 });
 
 // ─── Generate Soal (hanya teacher & individual) ───────────────────────────────

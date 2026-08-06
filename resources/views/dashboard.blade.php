@@ -409,7 +409,7 @@
                                 Profil &amp; Pengaturan
                             </a>
 
-                            <a href="{{ route('coming-soon', 'materi-pembelajaran') }}"
+                            <a href="{{ route('materi-pembelajaran.index') }}"
                                class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50/50 transition whitespace-nowrap">
                                 <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.04A8.97 8.97 0 0 0 6 3.75c-1.05 0-2.06.18-3 .51v14.25A8.99 8.99 0 0 1 6 18c2.3 0 4.41.87 6 2.29m0-14.25a8.97 8.97 0 0 1 6-2.29c1.05 0 2.06.18 3 .51v14.25A8.99 8.99 0 0 0 18 18a8.97 8.97 0 0 0-6 2.29V6.04Z"/></svg>

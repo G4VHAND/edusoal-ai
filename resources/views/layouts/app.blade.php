@@ -85,19 +85,18 @@
                 </a>
                 @endif
 
-                {{-- Roadmap: belum ada halaman/route sungguhan, sementara
-                     diarahkan ke placeholder "segera hadir" supaya sidebar
-                     tetap lengkap tanpa link mati. --}}
-                <a href="{{ route('coming-soon', 'materi-pembelajaran') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                <a href="{{ route('materi-pembelajaran.index') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                   {{ request()->routeIs('materi-pembelajaran.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M12 6.04A8.97 8.97 0 0 0 6 3.75c-1.05 0-2.06.18-3 .51v14.25A8.99 8.99 0 0 1 6 18c2.3 0 4.41.87 6 2.29m0-14.25a8.97 8.97 0 0 1 6-2.29c1.05 0 2.06.18 3 .51v14.25A8.99 8.99 0 0 0 18 18a8.97 8.97 0 0 0-6 2.29V6.04Z"/>
                     </svg>
                     Materi Pembelajaran
                 </a>
 
-                <a href="{{ route('coming-soon', 'riwayat-generate') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                <a href="{{ route('riwayat-generate') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                   {{ request()->routeIs('riwayat-generate') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" d="M12 7v5l3 3"/>
@@ -105,8 +104,9 @@
                     Riwayat Generate
                 </a>
 
-                <a href="{{ route('coming-soon', 'kelas-mapel') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                <a href="{{ route('kelas-mapel.index') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                   {{ request()->routeIs('kelas-mapel.*') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m5-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 3a4 4 0 1 0 0-8"/>
                     </svg>
@@ -124,8 +124,9 @@
                     Pengaturan
                 </a>
 
-                <a href="{{ route('coming-soon', 'bantuan') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                <a href="{{ route('bantuan') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                   {{ request()->routeIs('bantuan') ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.7-2.4 3.4M12 17h.01"/>
@@ -285,8 +286,9 @@
                         Template Dokumen
                     </a>
 
-                    <a href="{{ route('coming-soon', 'materi-pembelajaran') }}"
-                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <a href="{{ route('materi-pembelajaran.index') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                       {{ request()->routeIs('materi-pembelajaran.*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M12 6.04A8.97 8.97 0 0 0 6 3.75c-1.05 0-2.06.18-3 .51v14.25A8.99 8.99 0 0 1 6 18c2.3 0 4.41.87 6 2.29m0-14.25a8.97 8.97 0 0 1 6-2.29c1.05 0 2.06.18 3 .51v14.25A8.99 8.99 0 0 0 18 18a8.97 8.97 0 0 0-6 2.29V6.04Z"/>
                         </svg>
@@ -428,7 +430,7 @@
                     <div class="flex items-center gap-5 text-xs text-slate-400">
                         <span>Dibuat dengan ❤️ untuk pendidikan Indonesia</span>
                         <a href="{{ route('profile.edit') }}" class="hover:text-slate-600 transition">Pengaturan</a>
-                        <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Bantuan</a>
+                        <a href="{{ route('bantuan') }}" class="hover:text-slate-600 transition">Bantuan</a>
                     </div>
                 </div>
             </footer>
