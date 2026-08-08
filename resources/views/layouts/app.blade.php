@@ -295,8 +295,9 @@
                         Materi Pembelajaran
                     </a>
 
-                    <a href="{{ route('coming-soon', 'subscription-sekolah') }}"
-                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-100">
+                    <a href="{{ route('admin.subscription.index') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-sm transition
+                       {{ request()->routeIs('admin.subscription.*') ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M20.25 6.375c0 2.07-3.694 3.75-8.25 3.75S3.75 8.445 3.75 6.375m16.5 0c0-2.07-3.694-3.75-8.25-3.75S3.75 4.305 3.75 6.375m16.5 0v11.25c0 2.07-3.694 3.75-8.25 3.75s-8.25-1.68-8.25-3.75V6.375"/>
                         </svg>

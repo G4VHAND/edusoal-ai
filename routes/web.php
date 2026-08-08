@@ -7,7 +7,9 @@ use App\Http\Controllers\Admin\SchoolAIProviderController;
 use App\Http\Controllers\Admin\SchoolBankSoalController;
 use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\SchoolLetterheadController;
+use App\Http\Controllers\Admin\SchoolSubscriptionController;
 use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\TeacherImportController;
 use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentTemplateController;
@@ -252,6 +254,21 @@ Route::middleware(['auth', 'verified', 'role:super_admin,school_admin'])
 
             Route::post('/ai-provider', [SchoolAIProviderController::class, 'update'])
                 ->name('ai-provider.update');
+
+            // Subscription sekolah — read-only, karena belum ada sistem
+            // pembayaran self-service. Upgrade paket masih lewat super admin.
+            Route::get('/subscription', [SchoolSubscriptionController::class, 'index'])
+                ->name('subscription.index');
+
+            // Import guru lewat CSV — alternatif dari tambah guru satu-satu.
+            Route::get('/teachers/import', [TeacherImportController::class, 'create'])
+                ->name('teachers.import');
+
+            Route::post('/teachers/import', [TeacherImportController::class, 'store'])
+                ->name('teachers.import.store');
+
+            Route::get('/teachers/import/template', [TeacherImportController::class, 'template'])
+                ->name('teachers.import.template');
         });
     });
 

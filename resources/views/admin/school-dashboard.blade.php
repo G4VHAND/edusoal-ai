@@ -141,7 +141,7 @@
                         Tambah Guru
                     </a>
 
-                    <a href="{{ route('coming-soon', 'import-guru') }}"
+                    <a href="{{ route('admin.teachers.import') }}"
                        class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50/50 transition whitespace-nowrap">
                         <span class="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -157,7 +157,7 @@
                         Template Dokumen
                     </a>
 
-                    <a href="{{ route('coming-soon', 'subscription-sekolah') }}"
+                    <a href="{{ route('admin.subscription.index') }}"
                        class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50/50 transition whitespace-nowrap">
                         <span class="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.25 6.375c0 2.07-3.694 3.75-8.25 3.75S3.75 8.445 3.75 6.375m16.5 0c0-2.07-3.694-3.75-8.25-3.75S3.75 4.305 3.75 6.375m16.5 0v11.25c0 2.07-3.694 3.75-8.25 3.75s-8.25-1.68-8.25-3.75V6.375"/></svg>
@@ -229,7 +229,7 @@
                                 </div>
                                 @endif
                             </div>
-                            <a href="{{ route('coming-soon', 'subscription-sekolah') }}" class="shrink-0 mt-2 text-center text-xs font-semibold text-blue-600 hover:text-blue-800">
+                            <a href="{{ route('admin.subscription.index') }}" class="shrink-0 mt-2 text-center text-xs font-semibold text-blue-600 hover:text-blue-800">
                                 Lihat Detail →
                             </a>
                         </div>
@@ -349,7 +349,7 @@
                         @else
                         <p class="text-xs text-blue-100 mb-5">Sekolah Anda belum memiliki paket aktif.</p>
                         @endif
-                        <a href="{{ route('coming-soon', 'subscription-sekolah') }}"
+                        <a href="{{ route('admin.subscription.index') }}"
                            class="block text-center w-full bg-white text-blue-700 font-semibold text-sm py-2.5 rounded-xl hover:bg-blue-50 transition">
                             Kelola Subscription
                         </a>
